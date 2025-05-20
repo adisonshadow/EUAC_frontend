@@ -16,3 +16,12 @@ sudo chown -R $USER ~/MOM/UAC-Admin
 
 - 配置文件： ./openapi2ts.config.ts
 - 生成命令： npm run openapi2ts
+
+2. git
+```bash
+ # 提交到github
+ git push -u origin main
+
+ # 跳过校验提交到github
+ git commit --no-verify -m "initial commit"
+```

@@ -1,51 +1,65 @@
 import { Tag } from "antd";
 import UUIDDisplay from "@/components/UUIDDisplay";
+import DepartmentPath from "@/components/DepartmentPath";
+import { ProColumns } from "@ant-design/pro-components";
+import { ProFormSelect, ProFormText } from "@ant-design/pro-components";
+import { ProFormTextArea } from "@ant-design/pro-components";
 
-export const columns: any = [
+export const columns: ProColumns<any>[] = [
   {
     title: "员工编号",
     dataIndex: "user_id",
-    render: (text: string) => <UUIDDisplay uuid={text} />,
+    width: 90,
+    render: (dom: any) => <UUIDDisplay uuid={dom as string} />,
+  },
+  {
+    title: "姓名",
+    dataIndex: "name",
+    width: 90,
   },
   {
     title: "用户名",
     dataIndex: "username",
+    width: 120,
   },
   {
     title: "邮箱",
     dataIndex: "email",
+    width: 200,
   },
   {
     title: "电话",
     dataIndex: "phone",
+    width: 120,
   },
   {
     title: "状态",
     dataIndex: "status",
-    render: (_: any, record: any) => {
-      if (record.status === "ACTIVE") {
-        return <Tag color="success">在职</Tag>;
-      }
-      if (record.status === "DISABLED") {
-        return <Tag color="error">离职</Tag>;
-      }
-      if (record.status === "LOCKED") {
-        return <Tag color="warning">已锁定</Tag>;
-      }
-      if (record.status === "ARCHIVED") {
-        return <Tag color="default">已归档</Tag>;
-      }
+    width: 100,
+    valueEnum: {
+      ACTIVE: { text: '在职', status: 'success' },
+      DISABLED: { text: '离职', status: 'error' },
+      LOCKED: { text: '已锁定', status: 'warning' },
+      ARCHIVED: { text: '已归档', status: 'default' },
     },
+  },
+  {
+    title: "部门",
+    dataIndex: "department_id",
+    width: 200,
+    render: (dom: any) => <DepartmentPath departmentId={dom as string} />,
   },
   {
     title: "创建时间",
     dataIndex: "created_at",
     valueType: 'dateTime',
+    width: 180,
   },
   {
     title: "更新时间",
     dataIndex: "updated_at",
     valueType: 'dateTime',
+    width: 180,
   },
 ];
 
@@ -65,43 +79,122 @@ for (let i = 1; i < 20; i++) {
   });
 }
 
-export const formSchema: any = {
-  layoutType: "Form",
-  rowProps: {
-    gutter: [16, 16],
-  },
-  colProps: {
-    span: 12,
-  },
-  grid: true,
+export const formSchema = {
+  title: "成员信息",
   columns: [
-    {
-      title: "用户名",
-      dataIndex: "username",
-      required: true,
-    },
-    {
-      title: "邮箱",
-      dataIndex: "email",
-      required: true,
-    },
-    {
-      title: "密码",
-      dataIndex: "password",
-      valueType: 'password',
-      required: true,
-    },
-    {
-      title: "状态",
-      dataIndex: "status",
-      valueType: 'select',
-      valueEnum: {
-        ACTIVE: { text: '在职', status: 'success' },
-        DISABLED: { text: '离职', status: 'error' },
-        LOCKED: { text: '已锁定', status: 'warning' },
-        ARCHIVED: { text: '已归档', status: 'default' },
+    [
+      {
+        title: "姓名",
+        dataIndex: "name",
+        formItemProps: {
+          rules: [
+            {
+              required: true,
+              message: "此项为必填项",
+            },
+          ],
+        },
+        colProps: {
+          span: 12,
+        },
       },
-    },
+      {
+        title: "用户名",
+        dataIndex: "username",
+        formItemProps: {
+          rules: [
+            {
+              required: true,
+              message: "此项为必填项",
+            },
+          ],
+        },
+        colProps: {
+          span: 12,
+        },
+      },
+    ],
+    [
+      {
+        title: "邮箱",
+        dataIndex: "email",
+        formItemProps: {
+          rules: [
+            {
+              required: true,
+              message: "此项为必填项",
+            },
+            {
+              type: "email",
+              message: "请输入有效的邮箱地址",
+            },
+          ],
+        },
+        colProps: {
+          span: 12,
+        },
+      },
+      {
+        title: "电话",
+        dataIndex: "phone",
+        formItemProps: {
+          rules: [
+            {
+              required: true,
+              message: "此项为必填项",
+            },
+          ],
+        },
+        colProps: {
+          span: 12,
+        },
+      },
+    ],
+    [
+      {
+        title: "性别",
+        dataIndex: "gender",
+        valueType: "select",
+        valueEnum: {
+          MALE: { text: '男' },
+          FEMALE: { text: '女' },
+        },
+        colProps: {
+          span: 12,
+        },
+      },
+      {
+        title: "状态",
+        dataIndex: "status",
+        valueType: "select",
+        valueEnum: {
+          ACTIVE: { text: '在职' },
+          DISABLED: { text: '离职' },
+          LOCKED: { text: '已锁定' },
+          ARCHIVED: { text: '已归档' },
+        },
+        colProps: {
+          span: 12,
+        },
+      },
+    ],
+    [
+      {
+        title: "部门ID",
+        dataIndex: "department_id",
+        formItemProps: {
+          rules: [
+            {
+              required: true,
+              message: "此项为必填项",
+            },
+          ],
+        },
+        colProps: {
+          span: 12,
+        },
+      },
+    ],
   ],
 };
 

@@ -4,6 +4,9 @@
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 import { history, RequestConfig } from '@umijs/max';
 import api from '@/services/UAC/api';
+import { message } from 'antd';
+import { getDepartments } from './services/UAC/api/departments';
+import { getAuthCheck } from './services/UAC/api/auth';
 
 import { Footer, AvatarDropdown, AvatarName } from '@/components';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
@@ -49,10 +52,52 @@ interface UserInfo {
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   name?: string;
-  currentUser?: UserInfo;
-  loading?: boolean;
-  fetchUserInfo?: () => Promise<UserInfo | undefined>;
-  
+  avatar?: string;
+  currentUser?: {
+    user_id: string;
+    username: string;
+    name: string;
+    avatar: string | null;
+    gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
+    email: string;
+    phone: string | null;
+    status: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
+    department_id: string | null;
+  };
+  departments?: {
+    department_id: string;
+    name: string;
+    code: string;
+    parent_id: string | null;
+    status: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
+    description: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+  }[];
+  departmentsLastUpdate?: number;
+  fetchUserInfo?: () => Promise<{
+    user_id: string;
+    username: string;
+    name: string;
+    avatar: string | null;
+    gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
+    email: string;
+    phone: string | null;
+    status: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
+    department_id: string | null;
+  } | undefined>;
+  fetchDepartments?: () => Promise<{
+    department_id: string;
+    name: string;
+    code: string;
+    parent_id: string | null;
+    status: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
+    description: string;
+    created_at: string;
+    updated_at: string;
+    deleted_at: string | null;
+  }[] | undefined>;
 }> {
   const fetchUserInfo = async () => {
     try {
@@ -63,9 +108,9 @@ export async function getInitialState(): Promise<{
       }
 
       // 使用 auth/check 接口获取当前用户信息
-      const response = await api.auth.getAuthCheck();
+      const response = await getAuthCheck();
       
-      if (response.data) {
+      if (response.code === 200 && response.data) {
         const user = response.data;
         return {
           user_id: user.user_id || '',
@@ -85,25 +130,43 @@ export async function getInitialState(): Promise<{
       // 清除 token
       localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
-      history.push(loginPath);
+      history.push('/user/login');
     }
     return undefined;
   };
 
-  // 如果不是登录页面，执行
-  const { location } = history;
-  if (location.pathname !== loginPath) {
-    const currentUser = await fetchUserInfo();
-    return {
-      fetchUserInfo,
-      currentUser,
-      name: currentUser?.username || '未有效登录',
-      settings: defaultSettings as Partial<LayoutSettings>,
-    };
-  }
+  const fetchDepartments = async () => {
+    try {
+      const response = await getDepartments({});
+      if (response.code === 200 && response.data?.items) {
+        return response.data.items.map(item => ({
+          department_id: item.department_id || '',
+          name: item.name || '',
+          code: item.code || '',
+          parent_id: item.parent_id || null,
+          status: item.status || 'ACTIVE',
+          description: item.description || '',
+          created_at: item.created_at || '',
+          updated_at: item.updated_at || '',
+          deleted_at: item.deleted_at || null,
+        }));
+      }
+      return undefined;
+    } catch (error) {
+      console.error('获取部门列表失败:', error);
+      return undefined;
+    }
+  };
+
+  const currentUser = await fetchUserInfo();
+  const departments = await fetchDepartments();
   return {
     fetchUserInfo,
-    name: '未有效登录',
+    fetchDepartments,
+    currentUser,
+    departments,
+    departmentsLastUpdate: departments ? Date.now() : undefined,
+    name: currentUser?.username || '未有效登录',
     settings: defaultSettings as Partial<LayoutSettings>,
   };
 }
@@ -119,6 +182,39 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     history.push('/401');
   }
   
+  // 设置部门数据更新的定时器
+  let departmentUpdateTimer: NodeJS.Timeout | null = null;
+
+  const updateDepartments = async () => {
+    if (initialState?.fetchDepartments) {
+      const departments = await initialState.fetchDepartments();
+      if (departments) {
+        setInitialState((s) => ({
+          ...s,
+          departments,
+          departmentsLastUpdate: Date.now(),
+        }));
+      }
+    }
+  };
+
+  // 检查并更新部门数据
+  const checkAndUpdateDepartments = async () => {
+    if (initialState?.currentUser?.status === 'ACTIVE') {
+      if (!initialState.departments) {
+        // 如果没有部门数据，立即获取
+        await updateDepartments();
+      } else {
+        // 检查最后更新时间
+        const lastUpdate = initialState.departmentsLastUpdate;
+        const now = Date.now();
+        if (!lastUpdate || now - lastUpdate > 10 * 60 * 1000) { // 10分钟
+          await updateDepartments();
+        }
+      }
+    }
+  };
+
   return {
     footerRender: () => <Footer />,
     menuHeaderRender: undefined,
@@ -137,6 +233,8 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       if (!initialState?.currentUser && location.pathname !== loginPath) {
         history.push(loginPath);
       }
+      // 检查并更新部门数据
+      checkAndUpdateDepartments();
     },
     // childrenRender: (children) => {
     //   return <>{children}</>;

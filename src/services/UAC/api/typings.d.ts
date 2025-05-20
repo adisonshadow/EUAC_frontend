@@ -28,11 +28,23 @@ declare namespace API {
 
   type Department = {
     /** 部门ID */
-    id?: string;
+    department_id?: string;
     /** 部门名称 */
     name: string;
+    /** 部门编码 */
+    code: string;
     /** 父部门ID */
     parent_id?: string;
+    /** 部门状态 */
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
+    /** 部门描述 */
+    description?: string;
+    /** 创建时间 */
+    created_at?: string;
+    /** 更新时间 */
+    updated_at?: string;
+    /** 删除时间 */
+    deleted_at?: string;
   };
 
   type getDataPermissionsRulesParams = {
@@ -55,10 +67,16 @@ declare namespace API {
   };
 
   type getDepartmentsParams = {
-    /** 页码 */
+    /** 页码（可选，与 size 参数一起使用） */
     page?: number;
-    /** 每页数量 */
-    limit?: number;
+    /** 每页数量（可选，与 page 参数一起使用） */
+    size?: number;
+    /** 部门名称（支持模糊搜索） */
+    name?: string;
+    /** 部门编码（支持模糊搜索） */
+    code?: string;
+    /** 部门状态（精确匹配） */
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
   };
 
   type getPermissionsParams = {
@@ -86,10 +104,24 @@ declare namespace API {
   };
 
   type getUsersParams = {
-    /** 页码 */
+    /** 页码，默认 1 */
     page?: number;
-    /** 每页数量 */
-    limit?: number;
+    /** 每页数量，默认 30 */
+    size?: number;
+    /** 用户名（支持模糊搜索） */
+    username?: string;
+    /** 用户姓名（支持模糊搜索） */
+    name?: string;
+    /** 邮箱（支持模糊搜索） */
+    email?: string;
+    /** 电话（支持模糊搜索） */
+    phone?: string;
+    /** 用户状态（精确匹配） */
+    status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
+    /** 用户性别（精确匹配） */
+    gender?: 'MALE' | 'FEMALE' | 'OTHER';
+    /** 部门ID（精确匹配） */
+    department_id?: string;
   };
 
   type getUsersUserIdParams = {

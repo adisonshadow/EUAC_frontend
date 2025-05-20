@@ -15,7 +15,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
  GET /api/v1/auth/check */
 export async function getAuthCheck(options?: { [key: string]: any }) {
-  const token = localStorage.getItem('token');
   return request<{
     code?: number;
     message?: string;
@@ -32,9 +31,6 @@ export async function getAuthCheck(options?: { [key: string]: any }) {
     };
   }>('/api/v1/auth/check', {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
     ...(options || {}),
   });
 }
