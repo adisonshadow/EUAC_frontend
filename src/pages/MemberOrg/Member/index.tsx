@@ -4,6 +4,8 @@ import {
   EyeOutlined,
   PlusOutlined,
   RedoOutlined,
+  SaveOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import {
   ActionType,
@@ -12,19 +14,29 @@ import {
   ProDescriptions,
   ProDescriptionsItemProps,
   ProTable,
+  ProForm,
+  ProFormCascader,
+  ProFormText,
+  ProFormSelect,
 } from "@ant-design/pro-components";
 import { useSetState } from "ahooks";
-import { Button, Drawer, Modal, message, Spin } from "antd";
+import { Button, Drawer, Modal, Spin, Space, App } from "antd";
 import React, { useRef, useState, useEffect } from "react";
-import { history, useLocation } from '@umijs/max';
+import { history, useLocation, useModel } from '@umijs/max';
 import { columns, formSchema } from "./Schemas";
 import { getUsers, postUsers, putUsersUserId, deleteUsersUserId, getUsersUserId } from "@/services/UAC/api/users";
+import { getDepartmentPath } from '@/utils/department';
+import DepartmentPath from '@/components/DepartmentPath';
+import AvatarUpload from '@/components/AvatarUpload';
+import { Avatar } from "antd";
 
 const PAGE_SIZE: number = 30;
 
 const Page: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
   const actionRef = useRef<ActionType>();
   const [loading, setLoading] = useState(false);
+  const { message: messageApi } = App.useApp();
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const currentPage = parseInt(query.get('page') || '1', 10);
@@ -64,12 +76,12 @@ const Page: React.FC = () => {
                     await deleteUsersUserId({
                       user_id: record.user_id,
                     });
-                    message.success('删除成功');
+                    messageApi.success('删除成功');
                     if (actionRef.current) {
                       actionRef.current.reload();
                     }
                   } catch (error) {
-                    message.error('删除失败');
+                    messageApi.error('删除失败');
                   }
                 },
               });
@@ -89,12 +101,13 @@ const Page: React.FC = () => {
                   setState({
                     detailsValue: response.data,
                     isDetailsViewOpen: true,
+                    isDetailsEditable: false,
                   });
                 } else {
-                  message.error('获取用户详情失败');
+                  messageApi.error('获取用户详情失败');
                 }
               } catch (error) {
-                message.error('获取用户详情失败');
+                messageApi.error('获取用户详情失败');
               } finally {
                 setLoading(false);
               }
@@ -107,6 +120,7 @@ const Page: React.FC = () => {
     isUpdate: false,
     isUpdateModalOpen: false,
     isDetailsViewOpen: false,
+    isDetailsEditable: false,
     updateValue: {},
     detailsValue: {},
   });
@@ -117,9 +131,35 @@ const Page: React.FC = () => {
     isUpdate,
     isUpdateModalOpen,
     isDetailsViewOpen,
+    isDetailsEditable,
     updateValue,
     detailsValue,
   } = state;
+
+  const handleSaveDetails = async (values: any) => {
+    try {
+      await putUsersUserId({
+        user_id: detailsValue.user_id,
+      }, {
+        ...values,
+        department_id: Array.isArray(values.department_id) ? values.department_id[values.department_id.length - 1] : values.department_id,
+      });
+      messageApi.success('更新成功');
+      setState({ 
+        isDetailsEditable: false,
+        detailsValue: { 
+          ...detailsValue, 
+          ...values,
+          department_id: Array.isArray(values.department_id) ? values.department_id[values.department_id.length - 1] : values.department_id,
+        },
+      });
+      if (actionRef.current) {
+        actionRef.current.reload();
+      }
+    } catch (error) {
+      messageApi.error('更新失败');
+    }
+  };
 
   const detailColumns: ProDescriptionsItemProps[] = [
     {
@@ -130,11 +170,14 @@ const Page: React.FC = () => {
     {
       title: "姓名",
       dataIndex: "name",
+      editable: isDetailsEditable,
     },
     {
       title: "头像",
       dataIndex: "avatar",
-      valueType: 'image',
+      render: (_, record) => {
+        return <Avatar src={record.avatar || undefined} size={64} />;
+      },
     },
     {
       title: "性别",
@@ -143,6 +186,7 @@ const Page: React.FC = () => {
         MALE: { text: '男' },
         FEMALE: { text: '女' },
       },
+      editable: isDetailsEditable,
     },
     {
       title: "用户名",
@@ -151,10 +195,12 @@ const Page: React.FC = () => {
     {
       title: "邮箱",
       dataIndex: "email",
+      editable: isDetailsEditable,
     },
     {
       title: "电话",
       dataIndex: "phone",
+      editable: isDetailsEditable,
     },
     {
       title: "状态",
@@ -165,11 +211,14 @@ const Page: React.FC = () => {
         LOCKED: { text: '已锁定', status: 'warning' },
         ARCHIVED: { text: '已归档', status: 'default' },
       },
+      editable: isDetailsEditable,
     },
     {
-      title: "部门ID",
+      title: "所属部门",
       dataIndex: "department_id",
-      copyable: true,
+      render: (_, record) => {
+        return <DepartmentPath departmentId={record.department_id} />;
+      },
     },
     {
       title: "创建时间",
@@ -215,7 +264,7 @@ const Page: React.FC = () => {
             onClick={() => {
               if (actionRef.current) {
                 actionRef.current.reload();
-                message.success('同步成功');
+                messageApi.success('同步成功');
               }
             }}
           >
@@ -246,7 +295,7 @@ const Page: React.FC = () => {
               total: 0,
             };
           } catch (error) {
-            message.error('获取成员列表失败');
+            messageApi.error('获取成员列表失败');
             return {
               data: [],
               success: false,
@@ -286,17 +335,17 @@ const Page: React.FC = () => {
                 }, {
                   status: value.status,
                 });
-                message.success('更新成功');
+                messageApi.success('更新成功');
               } else {
                 await postUsers(value);
-                message.success('创建成功');
+                messageApi.success('创建成功');
               }
               setState({ isUpdateModalOpen: false });
               if (actionRef.current) {
                 actionRef.current.reload();
               }
             } catch (error) {
-              message.error(isUpdate ? '更新失败' : '创建失败');
+              messageApi.error(isUpdate ? '更新失败' : '创建失败');
             }
           }}
         />
@@ -306,17 +355,149 @@ const Page: React.FC = () => {
         width={800}
         open={isDetailsViewOpen}
         onClose={() => {
-          setState({ isDetailsViewOpen: false });
+          setState({ 
+            isDetailsViewOpen: false,
+            isDetailsEditable: false,
+          });
         }}
         title="用户详情"
+        extra={
+          <Space>
+            {isDetailsEditable ? (
+              <>
+                <Button
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  onClick={() => {
+                    const form = document.querySelector('form');
+                    if (form) {
+                      form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    }
+                  }}
+                >
+                  保存
+                </Button>
+                <Button
+                  icon={<CloseOutlined />}
+                  onClick={() => {
+                    setState({ isDetailsEditable: false });
+                  }}
+                >
+                  取消
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => {
+                  setState({ isDetailsEditable: true });
+                }}
+              >
+                编辑
+              </Button>
+            )}
+          </Space>
+        }
       >
         <Spin spinning={loading}>
           {detailsValue?.user_id && (
-            <ProDescriptions
-              column={2}
-              dataSource={detailsValue}
-              columns={detailColumns}
-            />
+            isDetailsEditable ? (
+              <ProForm
+                initialValues={{
+                  ...detailsValue,
+                  department_id: detailsValue.department_id ? getDepartmentPath(detailsValue.department_id, initialState?.departments || []) : [],
+                }}
+                onFinish={handleSaveDetails}
+                submitter={false}
+              >
+                <ProForm.Group>
+                  <ProFormText
+                    name="name"
+                    label="姓名"
+                    width="md"
+                  />
+                </ProForm.Group>
+                <ProForm.Group>
+                  <ProForm.Item
+                    label="头像"
+                    name="avatar"
+                  >
+                    <AvatarUpload 
+                      value={detailsValue.avatar || undefined} 
+                      onChange={(url) => {
+                        const form = document.querySelector('form');
+                        if (form) {
+                          const input = form.querySelector('input[name="avatar"]') as HTMLInputElement;
+                          if (input) {
+                            input.value = url;
+                          }
+                        }
+                      }}
+                    />
+                  </ProForm.Item>
+                </ProForm.Group>
+                <ProForm.Group>
+                  <ProFormSelect
+                    name="gender"
+                    label="性别"
+                    width="md"
+                    valueEnum={{
+                      MALE: '男',
+                      FEMALE: '女',
+                    }}
+                  />
+                  <ProFormText
+                    name="email"
+                    label="邮箱"
+                    width="md"
+                  />
+                </ProForm.Group>
+                <ProForm.Group>
+                  <ProFormText
+                    name="phone"
+                    label="电话"
+                    width="md"
+                  />
+                  <ProFormSelect
+                    name="status"
+                    label="状态"
+                    width="md"
+                    valueEnum={{
+                      ACTIVE: { text: '在职', status: 'success' },
+                      DISABLED: { text: '离职', status: 'error' },
+                      LOCKED: { text: '已锁定', status: 'warning' },
+                      ARCHIVED: { text: '已归档', status: 'default' },
+                    }}
+                  />
+                </ProForm.Group>
+                <ProForm.Group>
+                  <ProFormCascader
+                    name="department_id"
+                    label="所属部门"
+                    width="md"
+                    fieldProps={{
+                      options: initialState?.departmentsTreeData || [],
+                      changeOnSelect: false,
+                      expandTrigger: 'hover',
+                      showSearch: {
+                        filter: (inputValue, path) => {
+                          return path.some(option => 
+                            String(option.label).toLowerCase().indexOf(inputValue.toLowerCase()) > -1
+                          );
+                        },
+                      },
+                    }}
+                  />
+                </ProForm.Group>
+              </ProForm>
+            ) : (
+              <ProDescriptions
+                column={2}
+                dataSource={detailsValue}
+                columns={detailColumns}
+              />
+            )
           )}
         </Spin>
       </Drawer>

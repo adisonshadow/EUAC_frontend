@@ -2,20 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取部门列表 获取部门列表，支持分页和条件筛选。分页参数为可选，如果不传则返回所有记录。
-
-请求头格式：
-```
-Authorization: Bearer <your_token>
-```
-
-支持的查询参数：
-- page: 页码（可选，与 size 参数一起使用）
-- size: 每页数量（可选，与 page 参数一起使用）
-- name: 部门名称（支持模糊搜索）
-- code: 部门编码（支持模糊搜索）
-- status: 部门状态（精确匹配）
- GET /api/v1/departments */
+/** 获取部门列表 获取部门列表，支持分页和筛选。如果不提供分页参数，则返回所有记录。 GET /api/v1/departments */
 export async function getDepartments(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentsParams,
@@ -31,11 +18,8 @@ export async function getDepartments(
         name?: string;
         code?: string;
         parent_id?: string;
-        status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
-        description?: string;
+        status?: 'active' | 'inactive';
         created_at?: string;
-        updated_at?: string;
-        deleted_at?: string;
       }[];
       current?: number;
       size?: number;
@@ -43,23 +27,13 @@ export async function getDepartments(
   }>('/api/v1/departments', {
     method: 'GET',
     params: {
+      // page has a default value: 1
+      page: '1',
+      // size has a default value: 10
+      size: '10',
+
       ...params,
     },
-    ...(options || {}),
-  });
-}
-
-/** 创建部门 POST /api/v1/departments */
-export async function postDepartments(
-  body: API.Department,
-  options?: { [key: string]: any },
-) {
-  return request<any>('/api/v1/departments', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
     ...(options || {}),
   });
 }

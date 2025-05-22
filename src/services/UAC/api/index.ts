@@ -7,6 +7,7 @@ import * as departments from './departments';
 import * as permissions from './permissions';
 import * as roles from './roles';
 import * as system from './system';
+import * as upload from './upload';
 import * as users from './users';
 export default {
   system,
@@ -15,4 +16,5 @@ export default {
   departments,
   roles,
   permissions,
+  upload,
 };

@@ -2,46 +2,15 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 检查用户登录状态 检查用户的登录状态是否有效。需要在请求头中携带 Bearer Token。
-
-请求头格式：
-```
-Authorization: Bearer <your_token>
-```
-
-示例：
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
- GET /api/v1/auth/check */
-export async function getAuthCheck(options?: { [key: string]: any }) {
-  return request<{
-    code?: number;
-    message?: string;
-    data?: {
-      user_id?: string;
-      username?: string;
-      name?: string;
-      avatar?: string;
-      gender?: 'MALE' | 'FEMALE' | 'OTHER';
-      email?: string;
-      phone?: string;
-      status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
-      department_id?: string;
-    };
-  }>('/api/v1/auth/check', {
-    method: 'GET',
-    ...(options || {}),
-  });
-}
-
 /** 用户登录 POST /api/v1/auth/login */
 export async function postAuthLogin(
   body: {
-    /** 用户名 */
     username: string;
-    /** 密码 */
     password: string;
+    /** 验证码ID（如果需要验证码） */
+    captcha_id?: string;
+    /** 验证码值（如果需要验证码） */
+    captcha_value?: string;
   },
   options?: { [key: string]: any },
 ) {
@@ -49,10 +18,20 @@ export async function postAuthLogin(
     code?: number;
     message?: string;
     data?: {
-      token?: string;
+      access_token?: string;
       refresh_token?: string;
-      expires_in?: string;
-      user_id?: string;
+      expires_in?: number;
+      user?: {
+        user_id?: string;
+        username?: string;
+        name?: string;
+        avatar?: string;
+        gender?: 'MALE' | 'FEMALE' | 'OTHER';
+        email?: string;
+        phone?: string;
+        status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
+        department_id?: string;
+      };
     };
   }>('/api/v1/auth/login', {
     method: 'POST',
@@ -95,7 +74,7 @@ export async function postAuthRefresh(
   return request<{
     code?: number;
     message?: string;
-    data?: { token?: string; refresh_token?: string; expires_in?: string };
+    data?: { access_token?: string; expires_in?: number };
   }>('/api/v1/auth/refresh', {
     method: 'POST',
     headers: {
