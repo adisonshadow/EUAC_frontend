@@ -21,11 +21,6 @@ declare namespace API {
     permission_id: string;
   };
 
-  type deleteUsersIdParams = {
-    /** 用户ID */
-    id: string;
-  };
-
   type deleteUsersUserIdParams = {
     /** 用户ID */
     user_id: string;
@@ -72,16 +67,16 @@ declare namespace API {
   };
 
   type getDepartmentsParams = {
-    /** 页码 */
+    /** 页码（可选，与 size 参数一起使用） */
     page?: number;
-    /** 每页数量 */
+    /** 每页数量（可选，与 page 参数一起使用） */
     size?: number;
-    /** 部门名称 */
+    /** 部门名称（支持模糊搜索） */
     name?: string;
-    /** 部门编码 */
+    /** 部门编码（支持模糊搜索） */
     code?: string;
-    /** 状态 */
-    status?: 'active' | 'inactive';
+    /** 部门状态（精确匹配） */
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
   };
 
   type getPermissionsParams = {
@@ -108,13 +103,6 @@ declare namespace API {
     role_id: string;
   };
 
-  type getUploadsFileIdParams = {
-    /** 文件ID */
-    file_id: string;
-    /** 缩略图参数 */
-    thumb?: string;
-  };
-
   type getUploadsFilesFileIdParams = {
     /** 文件ID */
     file_id: string;
@@ -125,28 +113,33 @@ declare namespace API {
     file_id: string;
     /** 是否返回缩略图 */
     thumb?: boolean;
-    /** 缩略图宽度（默认300） */
+    /** 缩略图宽度 */
     width?: number;
-    /** 缩略图高度（默认300） */
+    /** 缩略图高度 */
     height?: number;
     /** 缩略图模式（cover-裁剪, contain-包含） */
     mode?: 'cover' | 'contain';
   };
 
-  type getUsersIdParams = {
-    /** 用户ID */
-    id: string;
-  };
-
   type getUsersParams = {
-    /** 页码 */
+    /** 页码，默认 1 */
     page?: number;
-    /** 每页数量 */
+    /** 每页数量，默认 30 */
     size?: number;
-    /** 用户名 */
+    /** 用户名（支持模糊搜索） */
     username?: string;
-    /** 状态 */
-    status?: 'active' | 'inactive';
+    /** 用户姓名（支持模糊搜索） */
+    name?: string;
+    /** 邮箱（支持模糊搜索） */
+    email?: string;
+    /** 电话（支持模糊搜索） */
+    phone?: string;
+    /** 用户状态（精确匹配） */
+    status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
+    /** 用户性别（精确匹配） */
+    gender?: 'MALE' | 'FEMALE' | 'OTHER';
+    /** 部门ID（精确匹配） */
+    department_id?: string;
   };
 
   type getUsersUserIdParams = {
@@ -170,6 +163,11 @@ declare namespace API {
     role_id: string;
   };
 
+  type postUploadsParams = {
+    /** 文件类型（默认为 image） */
+    type?: 'image' | 'video' | 'document';
+  };
+
   type postUsersUserIdRestoreParams = {
     /** 用户ID */
     user_id: string;
@@ -188,11 +186,6 @@ declare namespace API {
   type putRolesRoleIdParams = {
     /** 角色ID */
     role_id: string;
-  };
-
-  type putUsersIdParams = {
-    /** 用户ID */
-    id: string;
   };
 
   type putUsersUserIdParams = {

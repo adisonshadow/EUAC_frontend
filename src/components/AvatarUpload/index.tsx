@@ -3,6 +3,8 @@ import { Upload, Avatar, message } from 'antd';
 import type { GetProp, UploadFile, UploadProps } from 'antd';
 import ImgCrop from 'antd-img-crop';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
+import { postUploads } from '@/services/UAC/api/uploads';
+import { getImageUrl } from '@/utils/image';
 
 type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
@@ -18,20 +20,22 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
     value ? [
       {
         uid: '-1',
-        name: 'avatar.png',
+        name: 'avatar',
         status: 'done',
-        url: value,
+        url: getImageUrl(value),
       },
     ] : []
   );
 
   const handleChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
-    setFileList(newFileList);
+    // 只保留最新上传的文件
+    const latestFile = newFileList[newFileList.length - 1];
+    setFileList(latestFile ? [latestFile] : []);
     
     if (file.status === 'done') {
       if (file.response?.code === 200) {
         message.success('上传成功');
-        onChange?.(file.response.data.url);
+        onChange?.(file.response.data.id);
       } else {
         message.error('上传失败');
       }
@@ -72,9 +76,17 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
             fileList={fileList}
             onChange={handleChange}
             onPreview={onPreview}
-            action="/api/v1/upload"
-            headers={{
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            maxCount={1}
+            customRequest={async ({ file, onSuccess, onError }) => {
+              try {
+                setLoading(true);
+                const response = await postUploads({}, {}, file as File);
+                onSuccess?.(response);
+              } catch (error) {
+                onError?.(error as Error);
+              } finally {
+                setLoading(false);
+              }
             }}
             beforeUpload={(file) => {
               const isImage = file.type.startsWith('image/');
@@ -92,13 +104,13 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
           </Upload>
         </ImgCrop>
       )}
-      {value && (
+      {/* {value && (
         <Avatar
-          src={value}
+          src={getImageUrl(value)}
           size={64}
           style={{ marginTop: 16 }}
         />
-      )}
+      )} */}
     </div>
   );
 };

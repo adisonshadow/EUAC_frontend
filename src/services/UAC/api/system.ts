@@ -7,12 +7,7 @@ export async function getHealth(options?: { [key: string]: any }) {
   return request<{
     code?: number;
     message?: string;
-    data?: {
-      status?: string;
-      timestamp?: string;
-      version?: string;
-      uptime?: number;
-    };
+    data?: { status?: string };
   }>('/api/v1/health', {
     method: 'GET',
     ...(options || {}),
