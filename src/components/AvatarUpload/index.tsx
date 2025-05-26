@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Upload, Avatar, message } from 'antd';
-import type { GetProp, UploadFile, UploadProps } from 'antd';
+import React, { useState, useRef, forwardRef } from 'react';
+import { Upload, Image, message } from 'antd';
+import type { GetProp, UploadFile, UploadProps, ImageProps } from 'antd';
 import ImgCrop from 'antd-img-crop';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { postUploads } from '@/services/UAC/api/uploads';
@@ -27,6 +27,8 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
     ] : []
   );
 
+  const imageRef = useRef<HTMLDivElement>(null);
+
   const handleChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
     // 只保留最新上传的文件
     const latestFile = newFileList[newFileList.length - 1];
@@ -45,18 +47,12 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
   };
 
   const onPreview = async (file: UploadFile) => {
-    let src = file.url as string;
-    if (!src) {
-      src = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file.originFileObj as FileType);
-        reader.onload = () => resolve(reader.result as string);
-      });
+    if (imageRef.current) {
+      const firstImage = imageRef.current.querySelector('img');
+      if (firstImage) {
+        firstImage.click();
+      }
     }
-    const image = new Image();
-    image.src = src;
-    const imgWindow = window.open(src);
-    imgWindow?.document.write(image.outerHTML);
   };
 
   const uploadButton = (
@@ -104,13 +100,15 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
           </Upload>
         </ImgCrop>
       )}
-      {/* {value && (
-        <Avatar
-          src={getImageUrl(value)}
-          size={64}
-          style={{ marginTop: 16 }}
-        />
-      )} */}
+      {value && (
+        <div ref={imageRef} style={{ display: 'none' }}>
+          <Image
+            src={getImageUrl(value)}
+            alt="avatar"
+            preview
+          />
+        </div>
+      )}
     </div>
   );
 };

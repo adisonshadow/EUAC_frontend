@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useModel } from '@umijs/max';
 import { Tooltip, Cascader } from 'antd';
 import type { CascaderProps } from 'antd';
+import { getDepartmentPath } from '@/utils/department';
 
 interface DepartmentPathProps {
   departmentId: string;
   editable?: boolean;
   onChange?: (value: string) => void;
+  isOnlyShowTail?: boolean;
 }
 
 interface DepartmentOption {
@@ -19,28 +21,37 @@ interface DepartmentOption {
 const DepartmentPath: React.FC<DepartmentPathProps> = ({ 
   departmentId, 
   editable = false,
-  onChange 
+  onChange,
+  isOnlyShowTail = true 
 }) => {
   const { initialState } = useModel('@@initialState');
   const departments = initialState?.departments || [];
+  const [path, setPath] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchPath = async () => {
+      const result = await getDepartmentPath(departmentId, departments);
+      setPath(result);
+    };
+    fetchPath();
+  }, [departmentId, departments]);
 
   // 构建级联选择器的选项
   const options = useMemo(() => {
-    const buildOptions = (parentId: string | null): DepartmentOption[] => {
+    const buildOptions = (parentId: string | null = null): CascaderProps['options'] => {
       return departments
         .filter(dept => dept.parent_id === parentId)
         .map(dept => ({
           value: dept.department_id,
           label: dept.name,
           children: buildOptions(dept.department_id),
-          disabled: dept.status !== 'ACTIVE',
         }));
     };
-    return buildOptions(null);
+    return buildOptions();
   }, [departments]);
 
   // 获取当前部门路径
-  const path = useMemo(() => {
+  const pathMemo = useMemo(() => {
     const buildPath = (id: string): string[] => {
       const dept = departments.find(d => d.department_id === id);
       if (!dept) return [];
@@ -73,36 +84,23 @@ const DepartmentPath: React.FC<DepartmentPathProps> = ({
 
   if (editable) {
     return (
-      <Cascader<DepartmentOption>
+      <Cascader
         options={options}
         value={getValue}
-        onChange={(value) => {
-          if (value && value.length > 0) {
-            onChange?.(value[value.length - 1]);
-          }
-        }}
-        placeholder="请选择部门"
-        style={{ width: '100%' }}
-        expandTrigger="hover"
+        onChange={(value) => value && onChange?.(String(value[value.length - 1]))}
         changeOnSelect={false}
-        showSearch={{
-          filter: (inputValue, path) => {
-            return path.some(option => 
-              String(option.label).toLowerCase().indexOf(inputValue.toLowerCase()) > -1
-            );
-          },
-        }}
+        expandTrigger="hover"
       />
     );
   }
 
-  if (path.length === 0) {
-    return <span>-</span>;
-  }
+  if (!pathMemo.length) return null;
+
+  const displayContent = isOnlyShowTail ? pathMemo[pathMemo.length - 1] : pathMemo.join(' / ');
 
   return (
-    <Tooltip title={path.join(' / ')}>
-      <span>{path.join(' / ')}</span>
+    <Tooltip title={isOnlyShowTail ? pathMemo.join(' / ') : undefined}>
+      <span>{displayContent}</span>
     </Tooltip>
   );
 };

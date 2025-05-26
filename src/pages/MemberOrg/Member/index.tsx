@@ -6,35 +6,41 @@ import {
   RedoOutlined,
   SaveOutlined,
   CloseOutlined,
+  CopyOutlined,
 } from "@ant-design/icons";
 import {
   ActionType,
   BetaSchemaForm,
   PageContainer,
-  ProDescriptions,
-  ProDescriptionsItemProps,
   ProTable,
-  ProForm,
-  ProFormCascader,
-  ProFormText,
-  ProFormSelect,
 } from "@ant-design/pro-components";
 import { useSetState } from "ahooks";
-import { Button, Drawer, Modal, Spin, Space, message } from "antd";
-import React, { useRef, useState, useEffect } from "react";
+import { Button, Drawer, Modal, Spin, Space, message, Form, Input } from "antd";
+import React, { useRef, useState } from "react";
 import { history, useLocation, useModel } from '@umijs/max';
-import { columns, formSchema } from "./Schemas";
+import { tableColumns, userDetailFormColumns, userEditFormColumns, useDepartmentOptions } from "./Schemas";
 import { getUsers, postUsers, putUsersUserId, deleteUsersUserId, getUsersUserId } from "@/services/UAC/api/users";
 import { getDepartmentPath } from '@/utils/department';
-import DepartmentPath from '@/components/DepartmentPath';
-import AvatarUpload from '@/components/AvatarUpload';
-import { Avatar } from "antd";
-import { getImageUrl } from '@/utils/image';
 
 const PAGE_SIZE: number = 30;
 
+interface UserRecord {
+  user_id: string;
+  name: string;
+  username: string;
+  email: string;
+  phone: string;
+  status: string;
+  department_id: string;
+  created_at: string;
+  updated_at: string;
+  avatar?: string;
+  gender?: string;
+}
+
 const Page: React.FC = () => {
   const { initialState } = useModel('@@initialState');
+  const departmentOptions = useDepartmentOptions();
   const actionRef = useRef<ActionType>();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -42,103 +48,115 @@ const Page: React.FC = () => {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const currentPage = parseInt(query.get('page') || '1', 10);
+  const [form] = Form.useForm();
+
+  // 生成6位随机数字密码
+  const generateRandomPassword = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
 
   const [state, setState] = useSetState<any>({
-    tableColumns: columns.concat([
-      {
-        title: "操作",
-        dataIndex: "option",
-        valueType: "option",
-        render: (_: any, record: any) => [
-          <Button
-            title="编辑"
-            key="edit"
-            type="primary"
-            ghost
-            icon={<EditOutlined />}
-            onClick={() => {
+    tableColumns: [...tableColumns, {
+      title: "操作",
+      dataIndex: "option",
+      valueType: "option",
+      width: 120,
+      render: (_: unknown, record: UserRecord) => [
+        <Button
+          title="详情"
+          key="view"
+          type="primary"
+          ghost
+          icon={<EyeOutlined />}
+          onClick={async () => {
+            try {
+              setLoading(true);
+              // 先关闭抽屉，确保状态被重置
               setState({
-                updateValue: record,
-                isUpdate: true,
-                isUpdateModalOpen: true,
+                isDetailsViewOpen: false,
+                detailsValue: {},
+                isDetailsEditable: false,
               });
-            }}
-          />,
-          <Button
-            title="删除"
-            key="delete"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => {
-              Modal.confirm({
-                title: '确认删除',
-                content: '确定要删除该成员吗？',
-                onOk: async () => {
-                  try {
-                    await deleteUsersUserId({
-                      user_id: record.user_id,
-                    });
-                    messageApi.success('删除成功');
-                    if (actionRef.current) {
-                      actionRef.current.reload();
-                    }
-                  } catch (error) {
-                    messageApi.error('删除失败');
-                  }
-                },
+              
+              const response = await getUsersUserId({
+                user_id: record.user_id,
               });
-            }}
-          />,
-          <Button
-            title="详情"
-            key="view"
-            icon={<EyeOutlined />}
-            onClick={async () => {
-              try {
-                setLoading(true);
-                const response = await getUsersUserId({
-                  user_id: record.user_id,
-                });
-                if (response.code === 200 && response.data) {
+              
+              if (response.code === 200 && response.data) {
+                const processedData = {
+                  ...response.data,
+                  // 获取部门路径（从根部门到当前部门的所有部门ID）
+                  department_id: getDepartmentPath(response.data.department_id || '', initialState?.departments || []),
+                };
+                console.log('processedData', processedData);
+                // 使用 setTimeout 确保状态更新和抽屉重新打开的顺序
+                setTimeout(() => {
                   setState({
-                    detailsValue: response.data,
+                    detailsValue: processedData,
                     isDetailsViewOpen: true,
                     isDetailsEditable: false,
                   });
-                } else {
-                  messageApi.error('获取用户详情失败');
-                }
-              } catch (error) {
+                }, 0);
+              } else {
                 messageApi.error('获取用户详情失败');
-              } finally {
-                setLoading(false);
               }
-            }}
-          />,
-        ],
-      },
-    ]),
-    pageFormSchema: formSchema,
+            } catch (error) {
+              messageApi.error('获取用户详情失败');
+            } finally {
+              setLoading(false);
+            }
+          }}
+        />,
+        <Button
+          title="删除"
+          key="delete"
+          danger
+          icon={<DeleteOutlined />}
+          onClick={() => {
+            Modal.confirm({
+              title: '确认删除',
+              content: '确定要删除该成员吗？',
+              onOk: async () => {
+                try {
+                  await deleteUsersUserId({
+                    user_id: record.user_id,
+                  });
+                  messageApi.success('删除成功');
+                  if (actionRef.current) {
+                    actionRef.current.reload();
+                  }
+                } catch (error) {
+                  messageApi.error('删除失败');
+                }
+              },
+            });
+          }}
+        />,
+      ],
+    }],
     isUpdate: false,
     isUpdateModalOpen: false,
     isDetailsViewOpen: false,
     isDetailsEditable: false,
     updateValue: {},
     detailsValue: {},
+    isPasswordModalOpen: false,
+    generatedPassword: '',
+    isResetPasswordModalOpen: false,
   });
 
   const {
-    tableColumns,
-    pageFormSchema,
+    tableColumns: columns,
     isUpdate,
     isUpdateModalOpen,
     isDetailsViewOpen,
     isDetailsEditable,
     updateValue,
     detailsValue,
+    isPasswordModalOpen,
+    generatedPassword,
+    isResetPasswordModalOpen,
   } = state;
-
-  const [form] = ProForm.useForm();
 
   const handleSaveDetails = async (values: any) => {
     try {
@@ -183,78 +201,46 @@ const Page: React.FC = () => {
     }
   };
 
-  const detailColumns: ProDescriptionsItemProps[] = [
-    {
-      title: "用户ID",
-      dataIndex: "user_id",
-      copyable: true,
-    },
-    {
-      title: "姓名",
-      dataIndex: "name",
-      editable: isDetailsEditable,
-    },
-    {
-      title: "头像",
-      dataIndex: "avatar",
-      render: (_, record) => {
-        return record.avatar && record.avatar.trim() !== '' ? 
-          <Avatar src={getImageUrl(record.avatar)} size={64} /> : 
-          null;
-      },
-    },
-    {
-      title: "性别",
-      dataIndex: "gender",
-      valueEnum: {
-        MALE: { text: '男' },
-        FEMALE: { text: '女' },
-      },
-      editable: isDetailsEditable,
-    },
-    {
-      title: "用户名",
-      dataIndex: "username",
-    },
-    {
-      title: "邮箱",
-      dataIndex: "email",
-      editable: isDetailsEditable,
-    },
-    {
-      title: "电话",
-      dataIndex: "phone",
-      editable: isDetailsEditable,
-    },
-    {
-      title: "状态",
-      dataIndex: "status",
-      valueEnum: {
-        ACTIVE: { text: '在职', status: 'success' },
-        DISABLED: { text: '离职', status: 'error' },
-        LOCKED: { text: '已锁定', status: 'warning' },
-        ARCHIVED: { text: '已归档', status: 'default' },
-      },
-      editable: isDetailsEditable,
-    },
-    {
-      title: "所属部门",
-      dataIndex: "department_id",
-      render: (_, record) => {
-        return <DepartmentPath departmentId={record.department_id} />;
-      },
-    },
-    {
-      title: "创建时间",
-      dataIndex: "created_at",
-      valueType: 'dateTime',
-    },
-    {
-      title: "更新时间",
-      dataIndex: "updated_at",
-      valueType: 'dateTime',
-    },
-  ];
+  const handleResetPassword = async () => {
+    try {
+      setLoading(true);
+      const newPassword = generateRandomPassword();
+      const response = await putUsersUserId(
+        { user_id: detailsValue.user_id },
+        { password: newPassword } as any
+      );
+
+      if (response.code === 200) {
+        setState({
+          isResetPasswordModalOpen: true,
+          generatedPassword: newPassword,
+        });
+        messageApi.success('密码重置成功');
+      } else {
+        messageApi.error(response.message || '密码重置失败');
+      }
+    } catch (error) {
+      messageApi.error('密码重置失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 修改表单列配置，注入部门选项
+  const getFormColumns = (columns: any[]) => {
+    return columns.map(column => {
+      if (column.dataIndex === 'department_id') {
+        return {
+          ...column,
+          fieldProps: {
+            ...column.fieldProps,
+            options: departmentOptions,
+          },
+        };
+      }
+      return column;
+    });
+  };
 
   return (
     <>
@@ -277,6 +263,9 @@ const Page: React.FC = () => {
                 setState({
                   isUpdate: false,
                   isUpdateModalOpen: true,
+                  updateValue: {
+                    status: 'ACTIVE', // 新建用户，默认状态为在职
+                  }
                 });
               }}
             >
@@ -329,7 +318,7 @@ const Page: React.FC = () => {
               };
             }
           }}
-          columns={tableColumns}
+          columns={columns}
           pagination={{
             pageSize: PAGE_SIZE,
             showQuickJumper: false,
@@ -350,10 +339,18 @@ const Page: React.FC = () => {
           footer={null}
           width={800}
         >
-          <BetaSchemaForm<any>
-            {...pageFormSchema}
-            defaultValue={updateValue}
-            onFinish={async (value) => {
+          <BetaSchemaForm
+            layoutType = "Form"
+            columns={getFormColumns(userEditFormColumns)}
+            initialValues={updateValue}
+            grid={true}
+            rowProps={{
+              gutter: [16, 16],
+            }}
+            colProps={{
+              span: 12,
+            }}
+            onFinish={async (value: any) => {
               try {
                 if (isUpdate) {
                   await putUsersUserId({
@@ -363,27 +360,103 @@ const Page: React.FC = () => {
                   });
                   messageApi.success('更新成功');
                 } else {
-                  await postUsers(value);
-                  messageApi.success('创建成功');
+                  const password = generateRandomPassword();
+                  
+                  // 处理表单数据
+                  const processedValue = Object.entries(value).reduce((acc, [key, val]) => {
+                    // 对字符串类型的值进行trim
+                    if (typeof val === 'string') {
+                      acc[key] = val.trim();
+                    }
+                    // 处理department_id数组
+                    else if (key === 'department_id' && Array.isArray(val)) {
+                      acc[key] = val[val.length - 1];
+                    }
+                    // 其他类型的值保持不变
+                    else {
+                      acc[key] = val;
+                    }
+                    return acc;
+                  }, {} as Record<string, any>);
+
+                  // 确保包含必需的字段
+                  const userData: API.User = {
+                    ...processedValue,
+                    password,
+                    username: processedValue.username || '',
+                    email: processedValue.email || '',
+                  };
+
+                  const response = await postUsers(userData);
+                  
+                  if (response.code === 200) {
+                    setState({
+                      isUpdateModalOpen: false,
+                      isPasswordModalOpen: true,
+                      generatedPassword: password,
+                    });
+                    if (actionRef.current) {
+                      actionRef.current.reload();
+                    }
+                  } else {
+                    messageApi.error(response.message || '创建失败');
+                  }
                 }
-                setState({ isUpdateModalOpen: false });
-                if (actionRef.current) {
-                  actionRef.current.reload();
-                }
-              } catch (error) {
-                messageApi.error(isUpdate ? '更新失败' : '创建失败');
+              } catch (error: any) {
+                messageApi.error(error.message || (isUpdate ? '更新失败' : '创建失败'));
               }
             }}
           />
         </Modal>
+
+        <Modal
+          title="用户创建成功"
+          open={isPasswordModalOpen}
+          onCancel={() => {
+            setState({ isPasswordModalOpen: false });
+          }}
+          footer={[
+            <Button
+              key="close"
+              onClick={() => {
+                setState({ isPasswordModalOpen: false });
+              }}
+            >
+              关闭
+            </Button>
+          ]}
+        >
+          <p>用户创建成功！请记录以下初始密码：</p>
+          <Space>
+            <Input.Password
+              value={generatedPassword}
+              readOnly
+              style={{ width: '200px' }}
+            />
+            <Button
+              icon={<CopyOutlined />}
+              onClick={() => {
+                navigator.clipboard.writeText(generatedPassword);
+                messageApi.success('密码已复制到剪贴板');
+              }}
+            >
+              复制
+            </Button>
+          </Space>
+          <p style={{ marginTop: '16px', color: '#ff4d4f' }}>
+            注意：请妥善保管此密码，建议用户首次登录后立即修改密码。
+          </p>
+        </Modal>
         
         <Drawer
+          key={detailsValue.user_id}  // 添加 key 属性，强制 Drawer 重新渲染
           width={800}
           open={isDetailsViewOpen}
           onClose={() => {
             setState({ 
               isDetailsViewOpen: false,
               isDetailsEditable: false,
+              detailsValue: {},
             });
           }}
           title="用户详情"
@@ -411,127 +484,120 @@ const Page: React.FC = () => {
                   </Button>
                 </>
               ) : (
-                <Button
-                  type="primary"
-                  icon={<EditOutlined />}
-                  onClick={() => {
-                    setState({ isDetailsEditable: true });
-                  }}
-                >
-                  编辑
-                </Button>
+                <>
+                  <Button
+                    type="primary"
+                    icon={<EditOutlined />}
+                    onClick={() => {
+                      setState({ isDetailsEditable: true });
+                    }}
+                  >
+                    编辑
+                  </Button>
+                  <Button
+                    type="primary"
+                    danger
+                    ghost
+                    onClick={handleResetPassword}
+                  >
+                    重置密码
+                  </Button>
+                  <Button
+                    danger
+                    ghost
+                    icon={<DeleteOutlined />}
+                    onClick={() => {
+                      Modal.confirm({
+                        title: '确认删除',
+                        content: '确定要删除该成员吗？',
+                        onOk: async () => {
+                          try {
+                            await deleteUsersUserId({
+                              user_id: detailsValue.user_id,
+                            });
+                            messageApi.success('删除成功');
+                            setState({ 
+                              isDetailsViewOpen: false,
+                              detailsValue: {},
+                              isDetailsEditable: false,
+                            });
+                            if (actionRef.current) {
+                              actionRef.current.reload();
+                            }
+                          } catch (error) {
+                            messageApi.error('删除失败');
+                          }
+                        },
+                      });
+                    }}
+                  >
+                    删除
+                  </Button>
+                </>
               )}
             </Space>
           }
         >
           <Spin spinning={loading}>
             {detailsValue?.user_id && (
-              isDetailsEditable ? (
-                <ProForm
-                  form={form}
-                  initialValues={{
-                    ...detailsValue,
-                    department_id: detailsValue.department_id ? getDepartmentPath(detailsValue.department_id, initialState?.departments || []) : [],
-                  }}
-                  onFinish={handleSaveDetails}
-                  submitter={false}
-                >
-                  <ProForm.Group>
-                    <ProFormText
-                      name="name"
-                      label="姓名"
-                      width="md"
-                      rules={[{ required: true, message: '请输入姓名' }]}
-                    />
-                  </ProForm.Group>
-                  <ProForm.Group>
-                    <ProForm.Item
-                      label="头像"
-                      name="avatar"
-                    >
-                      <AvatarUpload 
-                        value={detailsValue.avatar || undefined} 
-                        onChange={(url) => {
-                          const form = document.querySelector('form');
-                          if (form) {
-                            const input = form.querySelector('input[name="avatar"]') as HTMLInputElement;
-                            if (input) {
-                              input.value = url;
-                            }
-                          }
-                        }}
-                      />
-                    </ProForm.Item>
-                  </ProForm.Group>
-                  <ProForm.Group>
-                    <ProFormSelect
-                      name="gender"
-                      label="性别"
-                      width="md"
-                      valueEnum={{
-                        MALE: '男',
-                        FEMALE: '女',
-                      }}
-                    />
-                    <ProFormText
-                      name="email"
-                      label="邮箱"
-                      width="md"
-                      rules={[
-                        { type: 'email', message: '请输入有效的邮箱地址' },
-                        { required: true, message: '请输入邮箱' }
-                      ]}
-                    />
-                  </ProForm.Group>
-                  <ProForm.Group>
-                    <ProFormText
-                      name="phone"
-                      label="电话"
-                      width="md"
-                    />
-                    <ProFormSelect
-                      name="status"
-                      label="状态"
-                      width="md"
-                      valueEnum={{
-                        ACTIVE: { text: '在职', status: 'success' },
-                        DISABLED: { text: '离职', status: 'error' },
-                        LOCKED: { text: '已锁定', status: 'warning' },
-                        ARCHIVED: { text: '已归档', status: 'default' },
-                      }}
-                      rules={[{ required: true, message: '请选择状态' }]}
-                    />
-                  </ProForm.Group>
-                  <ProForm.Group>
-                    <ProFormCascader
-                      name="department_id"
-                      label="所属部门"
-                      width="md"
-                      fieldProps={{
-                        options: initialState?.departmentsTreeData || [],
-                        changeOnSelect: false,
-                        expandTrigger: 'hover',
-                        showSearch: {
-                          filter: (inputValue, path) => {
-                            return path.some(option => 
-                              String(option.label).toLowerCase().indexOf(inputValue.toLowerCase()) > -1
-                            );
-                          },
-                        },
-                      }}
-                    />
-                  </ProForm.Group>
-                </ProForm>
-              ) : (
-                <ProDescriptions
-                  column={2}
-                  dataSource={detailsValue}
-                  columns={detailColumns}
-                />
-              )
+              <BetaSchemaForm
+                layoutType="Form"
+                columns={isDetailsEditable ? getFormColumns(userEditFormColumns) : getFormColumns(userDetailFormColumns)}
+                readonly={!isDetailsEditable}
+                initialValues={detailsValue}
+                grid={true}
+                rowProps={{
+                  gutter: [16, 16],
+                }}
+                colProps={{
+                  span: 12,
+                }}
+                onFinish={handleSaveDetails}
+                submitter={false}
+                form={form}
+              />
             )}
           </Spin>
         </Drawer>
+
+        <Modal
+          title="密码重置成功"
+          open={isResetPasswordModalOpen}
+          onCancel={() => {
+            setState({ isResetPasswordModalOpen: false });
+          }}
+          footer={[
+            <Button
+              key="close"
+              onClick={() => {
+                setState({ isResetPasswordModalOpen: false });
+              }}
+            >
+              关闭
+            </Button>
+          ]}
+        >
+          <p>密码重置成功！请记录以下新密码：</p>
+          <Space>
+            <Input.Password
+              value={generatedPassword}
+              readOnly
+              style={{ width: '200px' }}
+            />
+            <Button
+              icon={<CopyOutlined />}
+              onClick={() => {
+                navigator.clipboard.writeText(generatedPassword);
+                messageApi.success('密码已复制到剪贴板');
+              }}
+            >
+              复制
+            </Button>
+          </Space>
+          <p style={{ marginTop: '16px', color: '#ff4d4f' }}>
+            注意：请妥善保管此密码，建议用户首次登录后立即修改密码。
+          </p>
+        </Modal>
       </PageContainer>
     </>
   );

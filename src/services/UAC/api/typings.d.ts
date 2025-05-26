@@ -168,6 +168,11 @@ declare namespace API {
     type?: 'image' | 'video' | 'document';
   };
 
+  type postUsersUserIdResetPasswordParams = {
+    /** 用户ID */
+    user_id: string;
+  };
+
   type postUsersUserIdRestoreParams = {
     /** 用户ID */
     user_id: string;

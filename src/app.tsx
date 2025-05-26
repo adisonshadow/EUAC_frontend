@@ -3,8 +3,7 @@
 // 全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 import { history, RequestConfig } from '@umijs/max';
-import api from '@/services/UAC/api';
-import { message, App } from 'antd';
+import { App } from 'antd';
 import { getDepartments } from './services/UAC/api/departments';
 import { getAuthCheck } from './services/UAC/api/auth';
 import { useEffect } from 'react';
@@ -17,7 +16,9 @@ import defaultSettings from '@/../config/defaultSettings';
 // 忽略 findDOMNode 警告
 const originalError = console.error;
 console.error = (...args) => {
-  if (args[0]?.includes('Warning: findDOMNode is deprecated')) {
+  if (args[0]?.includes('is deprecated') || 
+      args[0]?.includes('net::ERR_FILE_NOT_FOUND') ||
+      args[0]?.includes('Unchecked runtime.lastError: The message port closed before a response was received.')) {
     return;
   }
   originalError.call(console, ...args);
@@ -226,7 +227,6 @@ export async function getInitialState(): Promise<{
 
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
   const { location } = history;
-  const { message: messageApi } = App.useApp();
 
   useEffect(() => {
     // 如果没有登录，重定向到 login

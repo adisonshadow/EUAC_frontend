@@ -1,226 +1,257 @@
-import { Tag } from "antd";
+import { ProFormColumnsType } from "@ant-design/pro-components";
+import DepartmentPath from '@/components/DepartmentPath';
 import UUIDDisplay from "@/components/UUIDDisplay";
-import DepartmentPath from "@/components/DepartmentPath";
-import { ProColumns } from "@ant-design/pro-components";
-import { ProFormSelect, ProFormText } from "@ant-design/pro-components";
-import { ProFormTextArea } from "@ant-design/pro-components";
+import AvatarUpload from "@/components/AvatarUpload";
+import { Image } from "antd";
+import { getImageUrl } from '@/utils/image';
+import { useModel } from '@umijs/max';
+import { statusEnum, genderEnum } from '@/enums';
 
-export const columns: ProColumns<any>[] = [
+// 自定义字段类型
+interface CustomUserFieldType extends Omit<ProFormColumnsType<any>, 'valueType'> {
+  ifShowInTable?: boolean;
+  ifShowInUserDetail?: boolean;
+  ifShowInUserEdit?: boolean;
+  valueType?: ProFormColumnsType<any>['valueType'];
+  copyable?: boolean;
+}
+
+// 字段定义
+export const fieldDefinitions: CustomUserFieldType[] = [
   {
-    title: "员工编号",
+    title: "用户ID",
     dataIndex: "user_id",
-    width: 90,
-    render: (dom: any) => <UUIDDisplay uuid={dom as string} />,
-  },
-  {
-    title: "姓名",
-    dataIndex: "name",
+    readonly: true,
+    copyable: true,
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: false,
     width: 90,
   },
   {
     title: "用户名",
     dataIndex: "username",
+    formItemProps: {
+      rules: [
+        { required: true, message: '请输入用户名' },
+        { min: 3, message: '用户名至少3个字符' },
+        { max: 16, message: '用户名最多16个字符' },
+        { pattern: /^[a-zA-Z0-9]+$/, message: '用户名只能包含字母和数字' },
+      ]
+    },
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: true,
     width: 120,
   },
   {
+    title: "姓名",
+    dataIndex: "name",
+    formItemProps: {
+      rules: [{ required: true, message: '请输入姓名' }]
+    },
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: true,
+    width: 90,
+  },
+  {
+    title: "所属部门",
+    dataIndex: "department_id",
+    valueType: 'cascader',
+    formItemProps: {
+      rules: [{ required: true, message: '请选择一个部门' }]
+    },
+    fieldProps: {
+      changeOnSelect: false,
+      expandTrigger: 'hover',
+      showSearch: {
+        filter: (inputValue: string, path: any[]) => {
+          return path.some(option => 
+            String(option.label).toLowerCase().indexOf(inputValue.toLowerCase()) > -1
+          );
+        },
+      },
+      options: [], // 这里先设置为空数组，实际值会在组件中动态设置
+    },
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: true,
+    width: 200,
+  },
+  {
+    title: "头像",
+    dataIndex: "avatar",
+    valueType: 'text',
+    fieldProps: {
+      listType: 'picture-card',
+      maxCount: 1,
+    },
+    ifShowInTable: false,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: true,
+  },
+  {
+    title: "性别",
+    dataIndex: "gender",
+    valueType: 'select',
+    valueEnum: genderEnum,
+    ifShowInTable: false,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: true,
+  },
+  
+  {
     title: "邮箱",
     dataIndex: "email",
+    valueType: 'text',
+    formItemProps: {
+      rules: [
+        // { required: true, message: '请输入邮箱' },
+        { type: 'email', message: '请输入有效的邮箱地址' }
+      ]
+    },
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: true,
     width: 200,
   },
   {
     title: "电话",
     dataIndex: "phone",
+    valueType: 'text',
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: true,
     width: 120,
   },
   {
     title: "状态",
     dataIndex: "status",
+    valueType: 'select',
+    valueEnum: statusEnum,
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: true,
     width: 100,
-    valueEnum: {
-      ACTIVE: { text: '在职', status: 'success' },
-      DISABLED: { text: '离职', status: 'error' },
-      LOCKED: { text: '已锁定', status: 'warning' },
-      ARCHIVED: { text: '已归档', status: 'default' },
-    },
-  },
-  {
-    title: "部门",
-    dataIndex: "department_id",
-    width: 200,
-    render: (dom: any) => <DepartmentPath departmentId={dom as string} />,
   },
   {
     title: "创建时间",
     dataIndex: "created_at",
     valueType: 'dateTime',
+    readonly: true,
+    
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: false,
     width: 180,
   },
   {
     title: "更新时间",
     dataIndex: "updated_at",
     valueType: 'dateTime',
+    readonly: true,
+    
+    ifShowInTable: true,
+    ifShowInUserDetail: true,
+    ifShowInUserEdit: false,
     width: 180,
   },
 ];
 
-export const mockData: any = [];
+// 创建一个自定义 hook 来获取部门数据
+export const useDepartmentOptions = () => {
+  const { initialState } = useModel('@@initialState');
+  return initialState?.departmentsTreeData || [];
+};
 
-const p = ["班组长", "工程师", "主任", "装配", "拆卸", "清洗"];
-const dp = ["生产", "生产", "生产", "生产", "质量", "质量", "工艺"];
-const st = ["在职", "在职", "离职", "已调岗", "请假"];
-for (let i = 1; i < 20; i++) {
-  mockData.push({
-    id: i,
-    code: "10000" + i,
-    name: "张三" + i,
-    post: p[Math.floor(Math.random() * p.length)],
-    dpt: dp[Math.floor(Math.random() * dp.length)],
-    status: st[Math.floor(Math.random() * st.length)],
+// 表格列配置
+export const tableColumns = fieldDefinitions
+  .filter(field => field.ifShowInTable)
+  .map(field => {
+    if (field.dataIndex === 'user_id') {
+      return {
+        ...field,
+        width: field.width,
+        render: (text: any, record: any) => {
+          const user_id = record.user_id;
+          if (!user_id || user_id === '') return null;
+          return <UUIDDisplay uuid={String(user_id)} />;
+        },
+      };
+    }
+    if (field.dataIndex === 'department_id') {
+      return {
+        ...field,
+        width: field.width,
+        render: (text: any, record: any) => {
+          const department_id = record.department_id;
+          if (!department_id || department_id === '') return null;
+          return <DepartmentPath departmentId={String(department_id)} />;
+        },
+      };
+    }
+    return {
+      ...field,
+      width: field.width,
+    };
   });
-}
 
-export const formSchema = {
-  title: "成员信息",
-  columns: [
-    [
-      {
-        title: "姓名",
-        dataIndex: "name",
-        formItemProps: {
-          rules: [
-            {
-              required: true,
-              message: "此项为必填项",
-            },
-          ],
+// 用户详情表单配置
+export const userDetailFormColumns = fieldDefinitions
+  .filter(field => field.ifShowInUserDetail)
+  .map(field => {
+    const { width, ...rest } = field;
+    if (field.dataIndex === 'avatar') {
+      return {
+        ...rest,
+        render: (dom: any) => {
+          if (!dom) return null;
+          const imageUrl = getImageUrl(String(dom));
+          return (
+            <Image
+              src={imageUrl}
+              alt="用户头像"
+              width={64}
+              height={64}
+              style={{ objectFit: 'cover', borderRadius: '50%' }}
+              preview={{
+                mask: '预览',
+                maskClassName: 'custom-image-mask',
+              }}
+            />
+          );
         },
-        colProps: {
-          span: 12,
+      };
+    }
+    if (field.dataIndex === 'department_id') {
+      return {
+        ...rest,
+        render: (text: any, record: any) => {
+          if (text.length === 0) return null;
+          const department_id = text[text.length - 1];
+          if (!department_id || department_id === '') return null;
+          return <DepartmentPath isOnlyShowTail={false} departmentId={String(department_id)} />;
         },
-      },
-      {
-        title: "用户名",
-        dataIndex: "username",
-        formItemProps: {
-          rules: [
-            {
-              required: true,
-              message: "此项为必填项",
-            },
-          ],
-        },
-        colProps: {
-          span: 12,
-        },
-      },
-    ],
-    [
-      {
-        title: "邮箱",
-        dataIndex: "email",
-        formItemProps: {
-          rules: [
-            {
-              required: true,
-              message: "此项为必填项",
-            },
-            {
-              type: "email",
-              message: "请输入有效的邮箱地址",
-            },
-          ],
-        },
-        colProps: {
-          span: 12,
-        },
-      },
-      {
-        title: "电话",
-        dataIndex: "phone",
-        formItemProps: {
-          rules: [
-            {
-              required: true,
-              message: "此项为必填项",
-            },
-          ],
-        },
-        colProps: {
-          span: 12,
-        },
-      },
-    ],
-    [
-      {
-        title: "性别",
-        dataIndex: "gender",
-        valueType: "select",
-        valueEnum: {
-          MALE: { text: '男' },
-          FEMALE: { text: '女' },
-        },
-        colProps: {
-          span: 12,
-        },
-      },
-      {
-        title: "状态",
-        dataIndex: "status",
-        valueType: "select",
-        valueEnum: {
-          ACTIVE: { text: '在职' },
-          DISABLED: { text: '离职' },
-          LOCKED: { text: '已锁定' },
-          ARCHIVED: { text: '已归档' },
-        },
-        colProps: {
-          span: 12,
-        },
-      },
-    ],
-    [
-      {
-        title: "部门ID",
-        dataIndex: "department_id",
-        formItemProps: {
-          rules: [
-            {
-              required: true,
-              message: "此项为必填项",
-            },
-          ],
-        },
-        colProps: {
-          span: 12,
-        },
-      },
-    ],
-  ],
-};
+      };
+    }
+    return {
+      ...rest,
+    };
+  });
 
-export const formSchema1: any = {
-  layoutType: "Form",
-  rowProps: {
-    gutter: [16, 16],
-  },
-  colProps: {
-    span: 12,
-  },
-  grid: true,
-  columns: [
-    {
-      title: "开始日期",
-      dataIndex: "startDate",
-      valueType: 'date',
-      width:'100%'
-    },
-    {
-      title: "结束日期",
-      dataIndex: "endDate",
-      valueType: 'date',
-      width:'100%'
-    },
-  ],
-};
-
-export const dataSchema: any = [];
+// 用户编辑表单配置
+export const userEditFormColumns = fieldDefinitions
+  .filter(field => field.ifShowInUserEdit)
+  .map(field => {
+    const { width, ...rest } = field;
+    if (field.dataIndex === 'avatar') {
+      return {
+        ...rest,
+        renderFormItem: () => <AvatarUpload />,
+      };
+    }
+    return {
+      ...rest,
+    };
+  });

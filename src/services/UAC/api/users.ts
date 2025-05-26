@@ -167,6 +167,32 @@ export async function deleteUsersUserId(
   });
 }
 
+/** 重置用户密码 POST /api/v1/users/${param0}/reset-password */
+export async function postUsersUserIdResetPassword(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.postUsersUserIdResetPasswordParams,
+  body: {
+    /** 新密码 */
+    new_password: string;
+  },
+  options?: { [key: string]: any },
+) {
+  const { user_id: param0, ...queryParams } = params;
+  return request<{
+    code?: number;
+    message?: string;
+    data?: Record<string, any>;
+  }>(`/api/v1/users/${param0}/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    params: { ...queryParams },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** 恢复已删除的用户 POST /api/v1/users/${param0}/restore */
 export async function postUsersUserIdRestore(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
