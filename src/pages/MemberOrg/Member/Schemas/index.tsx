@@ -36,7 +36,7 @@ export const fieldDefinitions: CustomUserFieldType[] = [
         { required: true, message: '请输入用户名' },
         { min: 3, message: '用户名至少3个字符' },
         { max: 16, message: '用户名最多16个字符' },
-        { pattern: /^[a-zA-Z0-9]+$/, message: '用户名只能包含字母和数字' },
+        { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线' },
       ]
     },
     ifShowInTable: true,

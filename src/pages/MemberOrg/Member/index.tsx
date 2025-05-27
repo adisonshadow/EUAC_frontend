@@ -48,7 +48,7 @@ const Page: React.FC = () => {
   const location = useLocation();
   const query = new URLSearchParams(location.search);
   const currentPage = parseInt(query.get('page') || '1', 10);
-  const [form] = Form.useForm();
+  const [editform] = Form.useForm();
 
   // 生成6位随机数字密码
   const generateRandomPassword = () => {
@@ -97,6 +97,15 @@ const Page: React.FC = () => {
                     isDetailsEditable: false,
                   });
                 }, 0);
+
+                // 强制更新表单字段值
+                /* 【 不可以删除 】
+                * 在使用 Ant Design 的 BetaSchemaForm 时，initialValues 是用于初始化表单数据的，它只会在表单组件首次渲染时生效。当外部的 detailsValue 更新后，表单不会自动同步这些变化，主要有以下原因：
+                * - 单向数据流机制：React 组件遵循单向数据流，initialValues 的更新不会触发表单内部状态的更新
+                * - 表单状态隔离：BetaSchemaForm 内部维护自己的状态，初始值设置后就与外部数据解耦了
+                */
+                editform.setFieldsValue(processedData);
+
               } else {
                 messageApi.error('获取用户详情失败');
               }
@@ -330,6 +339,8 @@ const Page: React.FC = () => {
             fullScreen: true,
           }}
         />
+
+        {/* 新建用户 */}
         <Modal
           title={isUpdate ? "编辑" : "新建"}
           open={isUpdateModalOpen}
@@ -409,6 +420,7 @@ const Page: React.FC = () => {
           />
         </Modal>
 
+        {/* 用户创建成功提示 */}
         <Modal
           title="用户创建成功"
           open={isPasswordModalOpen}
@@ -448,10 +460,13 @@ const Page: React.FC = () => {
           </p>
         </Modal>
         
+        {/* 用户详情 */}
         <Drawer
-          key={detailsValue.user_id}  // 添加 key 属性，强制 Drawer 重新渲染
+          key={detailsValue.user_id + isDetailsViewOpen}  // 添加 key 属性，强制 Drawer 重新渲染
           width={800}
+          forceRender={true}
           open={isDetailsViewOpen}
+          destroyOnHidden={true}
           onClose={() => {
             setState({ 
               isDetailsViewOpen: false,
@@ -459,7 +474,7 @@ const Page: React.FC = () => {
               detailsValue: {},
             });
           }}
-          title="用户详情"
+          title= {"用户详情 "+detailsValue.name}
           extra={
             <Space>
               {isDetailsEditable ? (
@@ -469,7 +484,7 @@ const Page: React.FC = () => {
                     icon={<SaveOutlined />}
                     loading={saving}
                     onClick={() => {
-                      form.submit();
+                      editform.submit();
                     }}
                   >
                     保存
@@ -541,9 +556,11 @@ const Page: React.FC = () => {
           <Spin spinning={loading}>
             {detailsValue?.user_id && (
               <BetaSchemaForm
+                key={`form-` + detailsValue.user_id} // 添加 key 属性，强制 Form 重新渲染
                 layoutType="Form"
                 columns={isDetailsEditable ? getFormColumns(userEditFormColumns) : getFormColumns(userDetailFormColumns)}
                 readonly={!isDetailsEditable}
+                title={detailsValue.username}
                 initialValues={detailsValue}
                 grid={true}
                 rowProps={{
@@ -554,12 +571,13 @@ const Page: React.FC = () => {
                 }}
                 onFinish={handleSaveDetails}
                 submitter={false}
-                form={form}
+                form={editform}
               />
             )}
           </Spin>
         </Drawer>
 
+        {/* 密码重置成功提示 */}
         <Modal
           title="密码重置成功"
           open={isResetPasswordModalOpen}

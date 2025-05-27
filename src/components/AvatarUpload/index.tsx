@@ -1,12 +1,10 @@
-import React, { useState, useRef, forwardRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload, Image, message } from 'antd';
-import type { GetProp, UploadFile, UploadProps, ImageProps } from 'antd';
+import type { GetProp, UploadFile, UploadProps } from 'antd';
 import ImgCrop from 'antd-img-crop';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { postUploads } from '@/services/UAC/api/uploads';
 import { getImageUrl } from '@/utils/image';
-
-type FileType = Parameters<GetProp<UploadProps, 'beforeUpload'>>[0];
 
 interface AvatarUploadProps {
   value?: string;
@@ -46,7 +44,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
     }
   };
 
-  const onPreview = async (file: UploadFile) => {
+  const onPreview = async () => {
     if (imageRef.current) {
       const firstImage = imageRef.current.querySelector('img');
       if (firstImage) {

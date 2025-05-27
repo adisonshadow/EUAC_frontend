@@ -3,7 +3,6 @@
 // 全局初始化数据配置，用于 Layout 用户信息和权限初始化
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 import { history, RequestConfig } from '@umijs/max';
-import { App } from 'antd';
 import { getDepartments } from './services/UAC/api/departments';
 import { getAuthCheck } from './services/UAC/api/auth';
 import { useEffect } from 'react';
@@ -48,18 +47,6 @@ export const request: RequestConfig = {
     },
   ],
 };
-
-interface UserInfo {
-  user_id: string;
-  username: string;
-  name: string | null;
-  avatar: string | null;
-  gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
-  email: string;
-  phone: string | null;
-  status: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
-  department_id: string | null;
-}
 
 interface DepartmentTreeOption {
   value: string;
