@@ -21,7 +21,7 @@ export const fieldDefinitions: CustomUserFieldType[] = [
   {
     title: "用户ID",
     dataIndex: "user_id",
-    readonly: true,
+    valueType: 'text',
     copyable: true,
     ifShowInTable: true,
     ifShowInUserDetail: true,
@@ -140,7 +140,7 @@ export const fieldDefinitions: CustomUserFieldType[] = [
     dataIndex: "created_at",
     valueType: 'dateTime',
     readonly: true,
-    
+    hideInSearch: true,
     ifShowInTable: true,
     ifShowInUserDetail: true,
     ifShowInUserEdit: false,
@@ -151,7 +151,7 @@ export const fieldDefinitions: CustomUserFieldType[] = [
     dataIndex: "updated_at",
     valueType: 'dateTime',
     readonly: true,
-    
+    hideInSearch: true,
     ifShowInTable: true,
     ifShowInUserDetail: true,
     ifShowInUserEdit: false,
@@ -189,6 +189,26 @@ export const tableColumns = fieldDefinitions
           if (!department_id || department_id === '') return null;
           return <DepartmentPath departmentId={String(department_id)} />;
         },
+      };
+    }
+    if (['user_id', 'username', 'name', 'email', 'phone'].includes(field.dataIndex as string)) {
+      return {
+        ...field,
+        width: field.width,
+        filters: false,
+        onFilter: true,
+        filterMode: 'menu',
+        filterSearch: true,
+      };
+    }
+    if (['status', 'gender', 'department_id'].includes(field.dataIndex as string)) {
+      return {
+        ...field,
+        width: field.width,
+        filters: true,
+        onFilter: true,
+        filterMode: 'menu',
+        filterSearch: true,
       };
     }
     return {

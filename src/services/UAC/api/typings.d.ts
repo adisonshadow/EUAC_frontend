@@ -126,6 +126,8 @@ declare namespace API {
     page?: number;
     /** 每页数量，默认 30 */
     size?: number;
+    /** 用户ID（精确匹配） */
+    user_id?: string;
     /** 用户名（支持模糊搜索） */
     username?: string;
     /** 用户姓名（支持模糊搜索） */
@@ -134,7 +136,7 @@ declare namespace API {
     email?: string;
     /** 电话（支持模糊搜索） */
     phone?: string;
-    /** 用户状态（精确匹配） */
+    /** 用户状态（精确匹配，不传则返回所有状态） */
     status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
     /** 用户性别（精确匹配） */
     gender?: 'MALE' | 'FEMALE' | 'OTHER';

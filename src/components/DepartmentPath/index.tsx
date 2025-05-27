@@ -11,13 +11,6 @@ interface DepartmentPathProps {
   isOnlyShowTail?: boolean;
 }
 
-interface DepartmentOption {
-  value: string;
-  label: string;
-  children?: DepartmentOption[];
-  disabled?: boolean;
-}
-
 const DepartmentPath: React.FC<DepartmentPathProps> = ({ 
   departmentId, 
   editable = false,

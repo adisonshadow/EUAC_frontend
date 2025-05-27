@@ -12,11 +12,12 @@ Authorization: Bearer <your_token>
 支持的查询参数：
 - page: 页码，默认 1
 - size: 每页数量，默认 30
+- user_id: 用户ID（精确匹配）
 - username: 用户名（支持模糊搜索）
 - name: 用户姓名（支持模糊搜索）
 - email: 邮箱（支持模糊搜索）
 - phone: 电话（支持模糊搜索）
-- status: 用户状态（精确匹配）
+- status: 用户状态（精确匹配，不传则返回所有状态）
 - gender: 性别（精确匹配）
 - department_id: 部门ID（精确匹配）
  GET /api/v1/users */

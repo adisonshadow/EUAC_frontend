@@ -49,6 +49,9 @@ const Page: React.FC = () => {
   const query = new URLSearchParams(location.search);
   const currentPage = parseInt(query.get('page') || '1', 10);
   const [editform] = Form.useForm();
+  const [createLoading, setCreateLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
 
   // 生成6位随机数字密码
   const generateRandomPassword = () => {
@@ -212,7 +215,7 @@ const Page: React.FC = () => {
 
   const handleResetPassword = async () => {
     try {
-      setLoading(true);
+      setResetPasswordLoading(true);
       const newPassword = generateRandomPassword();
       const response = await putUsersUserId(
         { user_id: detailsValue.user_id },
@@ -231,7 +234,7 @@ const Page: React.FC = () => {
     } catch (error) {
       messageApi.error('密码重置失败');
     } finally {
-      setLoading(false);
+      setResetPasswordLoading(false);
     }
   };
 
@@ -263,11 +266,16 @@ const Page: React.FC = () => {
           defaultSize="small"
           actionRef={actionRef}
           rowKey="user_id"
+          search={{
+            labelWidth: 'auto',
+            defaultCollapsed: false,
+          }}
           toolBarRender={() => [
             <Button
               type="primary"
               key="create"
               icon={<PlusOutlined />}
+              loading={createLoading}
               onClick={() => {
                 setState({
                   isUpdate: false,
@@ -280,20 +288,21 @@ const Page: React.FC = () => {
             >
               新建
             </Button>,
-            <Button
-              type="primary"
-              key="sync"
-              ghost
-              icon={<RedoOutlined />}
-              onClick={() => {
-                if (actionRef.current) {
-                  actionRef.current.reload();
-                  messageApi.success('同步成功');
-                }
-              }}
-            >
-              批量导入
-            </Button>,
+            // <Button
+            //   type="primary"
+            //   key="sync"
+            //   ghost
+            //   icon={<RedoOutlined />}
+            //   loading={loading}
+            //   onClick={() => {
+            //     if (actionRef.current) {
+            //       actionRef.current.reload();
+            //       messageApi.success('同步成功');
+            //     }
+            //   }}
+            // >
+            //   批量导入
+            // </Button>,
           ]}
           request={async (params) => {
             try {
@@ -302,9 +311,22 @@ const Page: React.FC = () => {
               newQuery.set('page', params.current?.toString() || '1');
               history.push(`${location.pathname}?${newQuery.toString()}`);
 
+              // 处理部门 ID
+              const department_id = Array.isArray(params.department_id) 
+                ? params.department_id[params.department_id.length - 1] 
+                : params.department_id;
+
               const response = await getUsers({
                 size: PAGE_SIZE,
                 page: params.current,
+                user_id: params.user_id,
+                username: params.username,
+                name: params.name,
+                email: params.email,
+                phone: params.phone,
+                status: params.status,
+                gender: params.gender,
+                department_id,
               });
               if (response.code === 200 && response.data) {
                 return {
@@ -327,7 +349,18 @@ const Page: React.FC = () => {
               };
             }
           }}
-          columns={columns}
+          columns={columns.map((column: any) => {
+            if (column.dataIndex === 'department_id') {
+              return {
+                ...column,
+                fieldProps: {
+                  ...column.fieldProps,
+                  options: departmentOptions,
+                },
+              };
+            }
+            return column;
+          })}
           pagination={{
             pageSize: PAGE_SIZE,
             showQuickJumper: false,
@@ -363,6 +396,7 @@ const Page: React.FC = () => {
             }}
             onFinish={async (value: any) => {
               try {
+                setCreateLoading(true);
                 if (isUpdate) {
                   await putUsersUserId({
                     user_id: updateValue.user_id,
@@ -415,6 +449,8 @@ const Page: React.FC = () => {
                 }
               } catch (error: any) {
                 messageApi.error(error.message || (isUpdate ? '更新失败' : '创建失败'));
+              } finally {
+                setCreateLoading(false);
               }
             }}
           />
@@ -513,6 +549,7 @@ const Page: React.FC = () => {
                     type="primary"
                     danger
                     ghost
+                    loading={resetPasswordLoading}
                     onClick={handleResetPassword}
                   >
                     重置密码
@@ -521,12 +558,14 @@ const Page: React.FC = () => {
                     danger
                     ghost
                     icon={<DeleteOutlined />}
+                    loading={deleteLoading}
                     onClick={() => {
                       Modal.confirm({
                         title: '确认删除',
                         content: '确定要删除该成员吗？',
                         onOk: async () => {
                           try {
+                            setDeleteLoading(true);
                             await deleteUsersUserId({
                               user_id: detailsValue.user_id,
                             });
@@ -541,6 +580,8 @@ const Page: React.FC = () => {
                             }
                           } catch (error) {
                             messageApi.error('删除失败');
+                          } finally {
+                            setDeleteLoading(false);
                           }
                         },
                       });
