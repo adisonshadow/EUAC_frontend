@@ -3,7 +3,7 @@ import { Upload, Image, message } from 'antd';
 import type { GetProp, UploadFile, UploadProps } from 'antd';
 import ImgCrop from 'antd-img-crop';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
-import { postUploads } from '@/services/UAC/api/uploads';
+import { postUploadsImage } from '@/services/UAC/api/uploads';
 import { getImageUrl } from '@/utils/image';
 
 interface AvatarUploadProps {
@@ -35,9 +35,13 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
     if (file.status === 'done') {
       if (file.response?.code === 200) {
         message.success('上传成功');
-        onChange?.(file.response.data.id);
+        // 从响应中获取图片 ID
+        const imageId = file.response.data?.id;
+        if (imageId) {
+          onChange?.(imageId);
+        }
       } else {
-        message.error('上传失败');
+        message.error(file.response?.message || '上传失败');
       }
     } else if (file.status === 'error') {
       message.error('上传失败');
@@ -65,7 +69,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
       {!disabled && (
         <ImgCrop rotationSlider>
           <Upload
-            name="file"
+            name="image"
             listType="picture-card"
             fileList={fileList}
             onChange={handleChange}
@@ -74,10 +78,17 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }
             customRequest={async ({ file, onSuccess, onError }) => {
               try {
                 setLoading(true);
-                const response = await postUploads({}, {}, file as File);
+                const response = await postUploadsImage({
+                  compress: true,
+                  format: 'webp',
+                  quality: 90,
+                  width: 168,
+                  height: 168,
+                }, file as File);
                 onSuccess?.(response);
-              } catch (error) {
-                onError?.(error as Error);
+              } catch (error: any) {
+                onError?.(error);
+                message.error(error.message || '上传失败');
               } finally {
                 setLoading(false);
               }

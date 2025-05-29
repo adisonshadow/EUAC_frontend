@@ -7,7 +7,7 @@ const Settings: ProLayoutProps & {
   pwa?: boolean;
   logo?: string;
 } = {
-  navTheme: 'light', // 主题颜色， light浅白色，dark深色
+  navTheme: 'light', // 主题颜色， light浅白色，realDark深色
   title: 'IAM', // 系统名称
   logo: '/images/logo.svg', // 系统logo地址（放在public目录下）
   colorPrimary: '#0476e7', // 拂晓蓝

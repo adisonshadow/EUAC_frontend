@@ -2,20 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取部门列表 获取部门列表，支持分页和条件筛选。分页参数为可选，如果不传则返回所有记录。
-
-请求头格式：
-```
-Authorization: Bearer <your_token>
-```
-
-支持的查询参数：
-- page: 页码（可选，与 size 参数一起使用）
-- size: 每页数量（可选，与 page 参数一起使用）
-- name: 部门名称（支持模糊搜索）
-- code: 部门编码（支持模糊搜索）
-- status: 部门状态（精确匹配）
- GET /api/v1/departments */
+/** 获取部门列表 获取部门列表，支持分页和筛选 GET /api/v1/departments */
 export async function getDepartments(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentsParams,
@@ -26,35 +13,65 @@ export async function getDepartments(
     message?: string;
     data?: {
       total?: number;
+      page?: number;
+      size?: number;
       items?: {
         department_id?: string;
         name?: string;
         code?: string;
-        parent_id?: string;
-        status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
         description?: string;
+        parent_id?: string;
+        manager_id?: string;
+        status?: string;
         created_at?: string;
-        updated_at?: string;
-        deleted_at?: string;
       }[];
-      current?: number;
-      size?: number;
     };
   }>('/api/v1/departments', {
     method: 'GET',
     params: {
+      // page has a default value: 1
+      page: '1',
+      // size has a default value: 10
+      size: '10',
+
       ...params,
     },
     ...(options || {}),
   });
 }
 
-/** 创建部门 POST /api/v1/departments */
+/** 创建部门 创建新的部门 POST /api/v1/departments */
 export async function postDepartments(
-  body: API.Department,
+  body: {
+    /** 部门名称 */
+    name: string;
+    /** 部门编码 */
+    code?: string;
+    /** 部门描述 */
+    description?: string;
+    /** 父部门ID */
+    parent_id?: string;
+    /** 部门主管ID */
+    manager_id?: string;
+    /** 部门状态 */
+    status?: 'ACTIVE' | 'INACTIVE';
+  },
   options?: { [key: string]: any },
 ) {
-  return request<any>('/api/v1/departments', {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      department_id?: string;
+      name?: string;
+      code?: string;
+      description?: string;
+      parent_id?: string;
+      manager_id?: string;
+      status?: string;
+      created_at?: string;
+    };
+  }>('/api/v1/departments', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -64,13 +81,7 @@ export async function postDepartments(
   });
 }
 
-/** 获取部门详情 获取指定部门的详细信息。需要在请求头中携带 Bearer Token。
-
-请求头格式：
-```
-Authorization: Bearer <your_token>
-```
- GET /api/v1/departments/${param0} */
+/** 获取部门详情 获取指定部门的详细信息 GET /api/v1/departments/${param0} */
 export async function getDepartmentsDepartmentId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentsDepartmentIdParams,
@@ -84,12 +95,14 @@ export async function getDepartmentsDepartmentId(
       department_id?: string;
       name?: string;
       code?: string;
-      parent_id?: string;
-      status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
       description?: string;
+      parent_id?: string;
+      manager_id?: string;
+      status?: string;
       created_at?: string;
       updated_at?: string;
-      deleted_at?: string;
+      manager?: { user_id?: string; name?: string };
+      parent?: { department_id?: string; name?: string };
     };
   }>(`/api/v1/departments/${param0}`, {
     method: 'GET',
@@ -98,15 +111,39 @@ export async function getDepartmentsDepartmentId(
   });
 }
 
-/** 更新部门信息 PUT /api/v1/departments/${param0} */
+/** 更新部门 更新指定部门的信息 PUT /api/v1/departments/${param0} */
 export async function putDepartmentsDepartmentId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putDepartmentsDepartmentIdParams,
-  body: API.Department,
+  body: {
+    /** 部门名称 */
+    name?: string;
+    /** 部门描述 */
+    description?: string;
+    /** 父部门ID */
+    parent_id?: string;
+    /** 部门主管ID */
+    manager_id?: string;
+    /** 部门状态 */
+    status?: 'ACTIVE' | 'INACTIVE';
+  },
   options?: { [key: string]: any },
 ) {
   const { department_id: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/departments/${param0}`, {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      department_id?: string;
+      name?: string;
+      code?: string;
+      description?: string;
+      parent_id?: string;
+      manager_id?: string;
+      status?: string;
+      updated_at?: string;
+    };
+  }>(`/api/v1/departments/${param0}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -117,58 +154,75 @@ export async function putDepartmentsDepartmentId(
   });
 }
 
-/** 删除部门 DELETE /api/v1/departments/${param0} */
+/** 删除部门 删除指定部门 DELETE /api/v1/departments/${param0} */
 export async function deleteDepartmentsDepartmentId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteDepartmentsDepartmentIdParams,
   options?: { [key: string]: any },
 ) {
   const { department_id: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/departments/${param0}`, {
-    method: 'DELETE',
-    params: { ...queryParams },
-    ...(options || {}),
-  });
+  return request<{ code?: number; message?: string; data?: any }>(
+    `/api/v1/departments/${param0}`,
+    {
+      method: 'DELETE',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
 }
 
-/** 获取部门成员 GET /api/v1/departments/${param0}/members */
-export async function getDepartmentsDepartmentIdMembers(
+/** 获取部门用户 获取指定部门的所有用户 GET /api/v1/departments/${param0}/users */
+export async function getDepartmentsDepartmentIdUsers(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getDepartmentsDepartmentIdMembersParams,
+  params: API.getDepartmentsDepartmentIdUsersParams,
   options?: { [key: string]: any },
 ) {
   const { department_id: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/departments/${param0}/members`, {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      total?: number;
+      page?: number;
+      size?: number;
+      items?: {
+        user_id?: string;
+        username?: string;
+        name?: string;
+        email?: string;
+        phone?: string;
+        status?: string;
+      }[];
+    };
+  }>(`/api/v1/departments/${param0}/users`, {
     method: 'GET',
     params: {
+      // page has a default value: 1
+      page: '1',
+      // size has a default value: 10
+      size: '10',
       ...queryParams,
     },
     ...(options || {}),
   });
 }
 
-/** 获取部门树结构 获取完整的部门树结构，包含所有子部门。需要在请求头中携带 Bearer Token。
-
-请求头格式：
-```
-Authorization: Bearer <your_token>
-```
- GET /api/v1/departments/tree */
+/** 获取部门树 获取部门树形结构，返回所有未删除的部门，按层级组织 GET /api/v1/departments/tree */
 export async function getDepartmentsTree(options?: { [key: string]: any }) {
   return request<{
     code?: number;
     message?: string;
     data?: {
-      items?: {
-        department_id?: string;
-        name?: string;
-        code?: string;
-        parent_id?: string;
-        status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
-        description?: string;
-        children?: API.Department[];
-      }[];
-    };
+      department_id?: string;
+      name?: string;
+      code?: string;
+      parent_id?: string;
+      description?: string;
+      status?: 'ACTIVE' | 'INACTIVE';
+      created_at?: string;
+      updated_at?: string;
+      children?: API.DepartmentTreeItem[];
+    }[];
   }>('/api/v1/departments/tree', {
     method: 'GET',
     ...(options || {}),

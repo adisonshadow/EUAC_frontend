@@ -425,11 +425,15 @@ const Page: React.FC = () => {
                   }, {} as Record<string, any>);
 
                   // 确保包含必需的字段
-                  const userData: API.User = {
-                    ...processedValue,
-                    password,
+                  const userData = {
                     username: processedValue.username || '',
-                    email: processedValue.email || '',
+                    password,
+                    name: processedValue.name || '',
+                    email: processedValue.email,
+                    phone: processedValue.phone,
+                    gender: processedValue.gender,
+                    department_id: processedValue.department_id,
+                    role_ids: processedValue.role_ids,
                   };
 
                   const response = await postUsers(userData);

@@ -40,11 +40,11 @@ export default [
         name: '成员管理',
         component: './MemberOrg/Member',
       },
-      // {
-      //   path: '/member_org/organization',
-      //   name: '组织架构管理',
-      //   component: './MemberOrg/Organization',
-      // },
+      {
+        path: '/member_org/organization',
+        name: '组织架构管理',
+        component: './MemberOrg/Organization',
+      },
       // {
       //   path: '/member_org/team',
       //   name: '组与团队管理',

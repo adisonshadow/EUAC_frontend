@@ -11,9 +11,9 @@ import {
 } from '@ant-design/pro-components';
 import { useEmotionCss } from '@ant-design/use-emotion-css';
 import { history, useModel, Helmet } from '@umijs/max';
-import { message, Tabs, Modal } from 'antd';
+import { message, Modal } from 'antd';
 import Settings from '@/../config/defaultSettings';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { flushSync } from 'react-dom';
 import SliderCaptchaComponent, { SliderCaptchaRef } from '@/components/SliderCaptcha';
 
@@ -23,22 +23,64 @@ interface LoginParams {
   username: string;
   password: string;
   type?: string;
+  captcha_data?: {
+    captcha_id: string;
+  };
 }
 
 interface UserInfo {
-  id?: string;
+  user_id: string;
   username: string;
+  name: string;
+  avatar: string | null;
+  gender: 'MALE' | 'FEMALE' | 'OTHER' | null;
   email: string;
-  status?: 'active' | 'inactive';
+  phone: string | null;
+  status: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
+  department_id: string | null;
 }
 
 const Login: React.FC = () => {
-  const [type, setType] = useState<string>('account');
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [loginParams, setLoginParams] = useState<LoginParams | null>(null);
   const [captchaId, setCaptchaId] = useState<string>('');
   const captchaRef = useRef<SliderCaptchaRef>(null);
   const { setInitialState } = useModel('@@initialState');
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const response = await auth.health.getHealth();
+        if (response.code !== 200) {
+          Modal.error({
+            title: '系统异常',
+            content: '系统服务暂时不可用，请稍后再试',
+            okText: '确定',
+          });
+          return;
+        }
+
+        // 检查数据库状态
+        if (response.data?.database?.status === 'error') {
+          Modal.error({
+            title: '数据库异常',
+            content: response.data.database.message || '数据库连接异常，请稍后再试',
+            okText: '确定',
+          });
+          return;
+        }
+        
+      } catch (error) {
+        Modal.error({
+          title: '网络异常',
+          content: '无法连接到服务器，请检查网络连接',
+          okText: '确定',
+        });
+      }
+    };
+
+    checkHealth();
+  }, []);
 
   const containerClassName = useEmotionCss(() => {
     return {
@@ -58,10 +100,12 @@ const Login: React.FC = () => {
         username: values.username,
         password: values.password,
       });
+
+      const data:any = msg.data;
       
-      if (msg.data?.need_captcha) {
+      if (data && data.need_captcha) {
         setLoginParams(values);
-        const response = await auth.auth.postCaptchaGenerate();
+        const response = await auth.captcha.getCaptcha();
         if (!response.data?.captcha_id) {
           message.error('获取验证码失败，请重试！');
         } else {
@@ -71,32 +115,42 @@ const Login: React.FC = () => {
         return;
       }
 
-      if (msg.data?.token) {
+      if (data && data.token) {
         message.success('登录成功！');
 
         // 保存 token 到 localStorage
-        localStorage.setItem('token', msg.data.token);
-        if (msg.data.refresh_token) {
-          localStorage.setItem('refresh_token', msg.data.refresh_token);
+        localStorage.setItem('token', data.token);
+        if (data.refresh_token) {
+          localStorage.setItem('refresh_token', data.refresh_token);
         }
 
-        // 设置用户信息
-        const userInfo: UserInfo = {
-          username: values.username,
-          email: '', // 这里需要从后端获取
-          status: 'active',
-        };
+        // 获取用户信息
+        const userResponse = await auth.auth.getAuthCheck();
+        if (userResponse.code === 200 && userResponse.data) {
+          const userData = userResponse.data;
+          const userInfo: UserInfo = {
+            user_id: userData.user_id || '',
+            username: values.username,
+            name: userData.name || values.username,
+            avatar: userData.avatar || null,
+            gender: userData.gender as any || null,
+            email: userData.email || '',
+            phone: userData.phone || null,
+            status: userData.status as any || 'DISABLED',
+            department_id: userData.department_id || null,
+          };
 
-        flushSync(() => {
-          setInitialState((s) => ({
-            ...s,
-            currentUser: userInfo,
-          }));
-        });
+          flushSync(() => {
+            setInitialState((s:any) => ({
+              ...s,
+              currentUser: userInfo,
+            }));
+          });
 
-        const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/');
-        return;
+          const urlParams = new URL(window.location.href).searchParams;
+          history.push(urlParams.get('redirect') || '/');
+          return;
+        }
       }
       message.error('登录失败，请重试！');
     } catch (error) {
@@ -105,11 +159,11 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleCaptchaSuccess = async () => {
+  const handleCaptchaSuccess = async (duration: number, trail: { x?: number; y?: number; timestamp?: number }[]) => {
     if (!loginParams || !captchaId) return;
 
     try {
-      // 验证通过后重新登录
+      // 验证通过后直接登录
       const msg = await auth.auth.postAuthLogin({ 
         username: loginParams.username,
         password: loginParams.password,
@@ -128,22 +182,33 @@ const Login: React.FC = () => {
           localStorage.setItem('refresh_token', msg.data.refresh_token);
         }
 
-        const userInfo: UserInfo = {
-          username: loginParams.username,
-          email: '',
-          status: 'active',
-        };
+        // 获取用户信息
+        const userResponse = await auth.auth.getAuthCheck();
+        if (userResponse.code === 200 && userResponse.data) {
+          const userData = userResponse.data;
+          const userInfo: UserInfo = {
+            user_id: userData.user_id || '',
+            username: loginParams.username,
+            name: userData.name || loginParams.username,
+            avatar: userData.avatar || null,
+            gender: userData.gender as any || null,
+            email: userData.email || '',
+            phone: userData.phone || null,
+            status: userData.status as any || 'DISABLED',
+            department_id: userData.department_id || null,
+          };
 
-        flushSync(() => {
-          setInitialState((s) => ({
-            ...s,
-            currentUser: userInfo,
-          }));
-        });
+          flushSync(() => {
+            setInitialState((s:any) => ({
+              ...s,
+              currentUser: userInfo,
+            }));
+          });
 
-        const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/');
-        return;
+          const urlParams = new URL(window.location.href).searchParams;
+          history.push(urlParams.get('redirect') || '/');
+          return;
+        }
       }
       setShowCaptcha(false);
       captchaRef.current?.reset();
@@ -186,50 +251,35 @@ const Login: React.FC = () => {
             await handleSubmit(values as LoginParams);
           }}
         >
-          <Tabs
-            activeKey={type}
-            onChange={setType}
-            centered
-            items={[
+          <p className='text-center text-muted mb-5'> 请使用用户名和密码登录 </p>
+          <ProFormText
+            name="username"
+            fieldProps={{
+              size: 'large',
+              prefix: <UserOutlined />,
+            }}
+            placeholder= '用户名'
+            rules={[
               {
-                key: 'account',
-                label: '账户密码登录',
+                required: true,
+                message: '请输入用户名!',
               },
             ]}
           />
-
-          {type === 'account' && (
-            <>
-              <ProFormText
-                name="username"
-                fieldProps={{
-                  size: 'large',
-                  prefix: <UserOutlined />,
-                }}
-                placeholder= '用户名'
-                rules={[
-                  {
-                    required: true,
-                    message: '请输入用户名!',
-                  },
-                ]}
-              />
-              <ProFormText.Password
-                name="password"
-                fieldProps={{
-                  size: 'large',
-                  prefix: <LockOutlined />,
-                }}
-                placeholder= '密码'
-                rules={[
-                  {
-                    required: true,
-                    message: '请输入密码！',
-                  },
-                ]}
-              />
-            </>
-          )}
+          <ProFormText.Password
+            name="password"
+            fieldProps={{
+              size: 'large',
+              prefix: <LockOutlined />,
+            }}
+            placeholder= '密码'
+            rules={[
+              {
+                required: true,
+                message: '请输入密码！',
+              },
+            ]}
+          />
 
           <div
             style={{

@@ -2,25 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取用户列表 获取用户列表，支持分页和条件筛选。需要在请求头中携带 Bearer Token。
-
-请求头格式：
-```
-Authorization: Bearer <your_token>
-```
-
-支持的查询参数：
-- page: 页码，默认 1
-- size: 每页数量，默认 30
-- user_id: 用户ID（精确匹配）
-- username: 用户名（支持模糊搜索）
-- name: 用户姓名（支持模糊搜索）
-- email: 邮箱（支持模糊搜索）
-- phone: 电话（支持模糊搜索）
-- status: 用户状态（精确匹配，不传则返回所有状态）
-- gender: 性别（精确匹配）
-- department_id: 部门ID（精确匹配）
- GET /api/v1/users */
+/** 获取用户列表 获取用户列表，支持分页和多种筛选条件 GET /api/v1/users */
 export async function getUsers(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getUsersParams,
@@ -29,36 +11,43 @@ export async function getUsers(
   return request<{
     code?: number;
     message?: string;
-    data?: {
-      total?: number;
-      items?: {
-        user_id?: string;
-        username?: string;
-        name?: string;
-        avatar?: string;
-        gender?: 'MALE' | 'FEMALE' | 'OTHER';
-        email?: string;
-        phone?: string;
-        status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
-        department_id?: string;
-        created_at?: string;
-        updated_at?: string;
-      }[];
-      page?: number;
-      size?: number;
-    };
+    data?: { total?: number; page?: number; size?: number; items?: API.User[] };
   }>('/api/v1/users', {
     method: 'GET',
     params: {
+      // page has a default value: 1
+      page: '1',
+      // size has a default value: 10
+      size: '10',
+
       ...params,
     },
     ...(options || {}),
   });
 }
 
-/** 创建新用户 POST /api/v1/users */
+/** 创建用户 创建新用户 POST /api/v1/users */
 export async function postUsers(
-  body: API.User,
+  body: {
+    /** 用户名 */
+    username: string;
+    /** 密码 */
+    password: string;
+    /** 姓名 */
+    name: string;
+    /** 邮箱 */
+    email?: string;
+    /** 电话 */
+    phone?: string;
+    /** 性别 */
+    gender?: 'MALE' | 'FEMALE' | 'OTHER';
+    /** 头像URL */
+    avatar?: string;
+    /** 部门ID */
+    department_id?: string;
+    /** 角色ID列表 */
+    role_ids?: string[];
+  },
   options?: { [key: string]: any },
 ) {
   return request<{ code?: number; message?: string; data?: API.User }>(
@@ -74,55 +63,138 @@ export async function postUsers(
   );
 }
 
-/** 获取用户详情 GET /api/v1/users/${param0} */
+/** 获取用户详情 获取指定用户的详细信息 GET /api/v1/users/${param0} */
 export async function getUsersUserId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getUsersUserIdParams,
   options?: { [key: string]: any },
 ) {
   const { user_id: param0, ...queryParams } = params;
-  return request<{
-    code?: number;
-    message?: string;
-    data?: {
-      user_id?: string;
-      username?: string;
-      name?: string;
-      avatar?: string;
-      gender?: 'MALE' | 'FEMALE' | 'OTHER';
-      email?: string;
-      phone?: string;
-      status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
-      department_id?: string;
-      created_at?: string;
-      updated_at?: string;
-    };
-  }>(`/api/v1/users/${param0}`, {
-    method: 'GET',
+  return request<{ code?: number; message?: string; data?: API.User }>(
+    `/api/v1/users/${param0}`,
+    {
+      method: 'GET',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** 更新用户信息 更新指定用户的信息 PUT /api/v1/users/${param0} */
+export async function putUsersUserId(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.putUsersUserIdParams,
+  body: {
+    /** 姓名 */
+    name?: string;
+    /** 邮箱 */
+    email?: string;
+    /** 电话 */
+    phone?: string;
+    /** 性别 */
+    gender?: 'MALE' | 'FEMALE' | 'OTHER';
+    /** 头像URL */
+    avatar?: string;
+    /** 部门ID */
+    department_id?: string;
+    /** 用户状态 */
+    status?: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
+  },
+  options?: { [key: string]: any },
+) {
+  const { user_id: param0, ...queryParams } = params;
+  return request<{ code?: number; message?: string; data?: API.User }>(
+    `/api/v1/users/${param0}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    },
+  );
+}
+
+/** 删除用户 删除指定用户 DELETE /api/v1/users/${param0} */
+export async function deleteUsersUserId(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.deleteUsersUserIdParams,
+  options?: { [key: string]: any },
+) {
+  const { user_id: param0, ...queryParams } = params;
+  return request<{ code?: number; message?: string; data?: any }>(
+    `/api/v1/users/${param0}`,
+    {
+      method: 'DELETE',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** 上传用户头像 上传并更新用户头像 POST /api/v1/users/${param0}/avatar */
+export async function postUsersUserIdAvatar(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.postUsersUserIdAvatarParams,
+  body: {},
+  avatar?: File,
+  options?: { [key: string]: any },
+) {
+  const { user_id: param0, ...queryParams } = params;
+  const formData = new FormData();
+
+  if (avatar) {
+    formData.append('avatar', avatar);
+  }
+
+  Object.keys(body).forEach((ele) => {
+    const item = (body as any)[ele];
+
+    if (item !== undefined && item !== null) {
+      if (typeof item === 'object' && !(item instanceof File)) {
+        if (item instanceof Array) {
+          item.forEach((f) => formData.append(ele, f || ''));
+        } else {
+          formData.append(ele, JSON.stringify(item));
+        }
+      } else {
+        formData.append(ele, item);
+      }
+    }
+  });
+
+  return request<any>(`/api/v1/users/${param0}/avatar`, {
+    method: 'POST',
+    params: { ...queryParams },
+    data: formData,
+    requestType: 'form',
+    ...(options || {}),
+  });
+}
+
+/** 恢复已删除用户 恢复被软删除的用户 POST /api/v1/users/${param0}/restore */
+export async function postUsersUserIdRestore(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.postUsersUserIdRestoreParams,
+  options?: { [key: string]: any },
+) {
+  const { user_id: param0, ...queryParams } = params;
+  return request<any>(`/api/v1/users/${param0}/restore`, {
+    method: 'POST',
     params: { ...queryParams },
     ...(options || {}),
   });
 }
 
-/** 更新用户信息 PUT /api/v1/users/${param0} */
-export async function putUsersUserId(
+/** 更新用户角色 更新指定用户的角色 PUT /api/v1/users/${param0}/roles */
+export async function putUsersUserIdRoles(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.putUsersUserIdParams,
+  params: API.putUsersUserIdRolesParams,
   body: {
-    /** 用户姓名 */
-    name?: string;
-    /** 电子邮箱 */
-    email?: string;
-    /** 用户头像URL */
-    avatar?: string;
-    /** 用户性别 */
-    gender?: 'MALE' | 'FEMALE' | 'OTHER';
-    /** 电话号码 */
-    phone?: string;
-    /** 用户状态 */
-    status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
-    /** 部门ID */
-    department_id?: string;
+    /** 角色ID列表 */
+    role_ids: string[];
   },
   options?: { [key: string]: any },
 ) {
@@ -130,16 +202,8 @@ export async function putUsersUserId(
   return request<{
     code?: number;
     message?: string;
-    data?: {
-      user_id?: string;
-      username?: string;
-      email?: string;
-      phone?: string;
-      status?: 'ACTIVE' | 'DISABLED' | 'LOCKED' | 'ARCHIVED';
-      department_id?: string;
-      updated_at?: string;
-    };
-  }>(`/api/v1/users/${param0}`, {
+    data?: { user_id?: string; roles?: { role_id?: string; name?: string }[] };
+  }>(`/api/v1/users/${param0}/roles`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -150,41 +214,19 @@ export async function putUsersUserId(
   });
 }
 
-/** 删除用户 DELETE /api/v1/users/${param0} */
-export async function deleteUsersUserId(
+/** 更新用户状态 更新指定用户的状态 PUT /api/v1/users/${param0}/status */
+export async function putUsersUserIdStatus(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.deleteUsersUserIdParams,
-  options?: { [key: string]: any },
-) {
-  const { user_id: param0, ...queryParams } = params;
-  return request<{
-    code?: number;
-    message?: string;
-    data?: Record<string, any>;
-  }>(`/api/v1/users/${param0}`, {
-    method: 'DELETE',
-    params: { ...queryParams },
-    ...(options || {}),
-  });
-}
-
-/** 重置用户密码 POST /api/v1/users/${param0}/reset-password */
-export async function postUsersUserIdResetPassword(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.postUsersUserIdResetPasswordParams,
+  params: API.putUsersUserIdStatusParams,
   body: {
-    /** 新密码 */
-    new_password: string;
+    /** 用户状态 */
+    status: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
   },
   options?: { [key: string]: any },
 ) {
   const { user_id: param0, ...queryParams } = params;
-  return request<{
-    code?: number;
-    message?: string;
-    data?: Record<string, any>;
-  }>(`/api/v1/users/${param0}/reset-password`, {
-    method: 'POST',
+  return request<any>(`/api/v1/users/${param0}/status`, {
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -194,16 +236,22 @@ export async function postUsersUserIdResetPassword(
   });
 }
 
-/** 恢复已删除的用户 POST /api/v1/users/${param0}/restore */
-export async function postUsersUserIdRestore(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.postUsersUserIdRestoreParams,
+/** 重置密码 重置用户密码 POST /api/v1/users/reset-password */
+export async function postUsersResetPassword(
+  body: {
+    /** 用户名 */
+    username: string;
+    /** 邮箱 */
+    email: string;
+  },
   options?: { [key: string]: any },
 ) {
-  const { user_id: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/users/${param0}/restore`, {
+  return request<any>('/api/v1/users/reset-password', {
     method: 'POST',
-    params: { ...queryParams },
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
     ...(options || {}),
   });
 }

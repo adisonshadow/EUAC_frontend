@@ -2,61 +2,72 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取数据权限规则 GET /api/v1/data-permissions/rules */
-export async function getDataPermissionsRules(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getDataPermissionsRulesParams,
-  options?: { [key: string]: any },
-) {
-  return request<any>('/api/v1/data-permissions/rules', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  });
-}
-
-/** 创建数据权限规则 POST /api/v1/data-permissions/rules */
-export async function postDataPermissionsRules(
-  body: {
-    role_id: string;
-    resource_type: string;
-    conditions: { field?: string; operator?: string; value?: string };
-  },
-  options?: { [key: string]: any },
-) {
-  return request<any>('/api/v1/data-permissions/rules', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 获取权限列表 GET /api/v1/permissions */
+/** 获取权限列表 获取权限列表，支持分页和筛选 GET /api/v1/permissions */
 export async function getPermissions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getPermissionsParams,
   options?: { [key: string]: any },
 ) {
-  return request<any>('/api/v1/permissions', {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      total?: number;
+      page?: number;
+      limit?: number;
+      items?: {
+        permission_id?: string;
+        name?: string;
+        code?: string;
+        description?: string;
+        type?: string;
+        parent_id?: string;
+        created_at?: string;
+      }[];
+    };
+  }>('/api/v1/permissions', {
     method: 'GET',
     params: {
+      // page has a default value: 1
+      page: '1',
+      // limit has a default value: 10
+      limit: '10',
+
       ...params,
     },
     ...(options || {}),
   });
 }
 
-/** 创建权限 POST /api/v1/permissions */
+/** 创建权限 创建新的权限 POST /api/v1/permissions */
 export async function postPermissions(
-  body: API.Permission,
+  body: {
+    /** 权限名称 */
+    name: string;
+    /** 权限编码 */
+    code: string;
+    /** 权限描述 */
+    description?: string;
+    /** 权限类型 */
+    type?: 'MENU' | 'BUTTON' | 'API';
+    /** 父权限ID */
+    parent_id?: string;
+  },
   options?: { [key: string]: any },
 ) {
-  return request<any>('/api/v1/permissions', {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      permission_id?: string;
+      name?: string;
+      code?: string;
+      description?: string;
+      type?: string;
+      parent_id?: string;
+      created_at?: string;
+    };
+  }>('/api/v1/permissions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -66,15 +77,60 @@ export async function postPermissions(
   });
 }
 
-/** 更新权限信息 PUT /api/v1/permissions/${param0} */
-export async function putPermissionsPermissionId(
+/** 获取权限详情 获取指定权限的详细信息 GET /api/v1/permissions/${param0} */
+export async function getPermissionsPermissionId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.putPermissionsPermissionIdParams,
-  body: API.Permission,
+  params: API.getPermissionsPermissionIdParams,
   options?: { [key: string]: any },
 ) {
   const { permission_id: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/permissions/${param0}`, {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      permission_id?: string;
+      name?: string;
+      code?: string;
+      description?: string;
+      type?: string;
+      parent_id?: string;
+      created_at?: string;
+      updated_at?: string;
+    };
+  }>(`/api/v1/permissions/${param0}`, {
+    method: 'GET',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
+}
+
+/** 更新权限 更新指定权限的信息 PUT /api/v1/permissions/${param0} */
+export async function putPermissionsPermissionId(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.putPermissionsPermissionIdParams,
+  body: {
+    /** 权限名称 */
+    name?: string;
+    /** 权限描述 */
+    description?: string;
+    /** 权限类型 */
+    type?: 'MENU' | 'BUTTON' | 'API';
+    /** 父权限ID */
+    parent_id?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  const { permission_id: param0, ...queryParams } = params;
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      permission_id?: string;
+      permission_name?: string;
+      code?: string;
+      description?: string;
+    };
+  }>(`/api/v1/permissions/${param0}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -85,30 +141,108 @@ export async function putPermissionsPermissionId(
   });
 }
 
-/** 删除权限 DELETE /api/v1/permissions/${param0} */
+/** 删除权限 删除指定权限 DELETE /api/v1/permissions/${param0} */
 export async function deletePermissionsPermissionId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deletePermissionsPermissionIdParams,
   options?: { [key: string]: any },
 ) {
   const { permission_id: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/permissions/${param0}`, {
-    method: 'DELETE',
-    params: { ...queryParams },
+  return request<{ code?: number; message?: string }>(
+    `/api/v1/permissions/${param0}`,
+    {
+      method: 'DELETE',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** 分配角色权限 为指定角色分配权限 POST /api/v1/permissions/${param0}/roles */
+export async function postPermissionsPermissionIdRoles(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.postPermissionsPermissionIdRolesParams,
+  body: {
+    /** 角色ID列表 */
+    role_ids: string[];
+  },
+  options?: { [key: string]: any },
+) {
+  const { permission_id: param0, ...queryParams } = params;
+  return request<{ code?: number; message?: string }>(
+    `/api/v1/permissions/${param0}/roles`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    },
+  );
+}
+
+/** 检查权限 检查用户是否拥有指定权限 GET /api/v1/permissions/check */
+export async function getPermissionsCheck(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getPermissionsCheckParams,
+  options?: { [key: string]: any },
+) {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: { has_permission?: boolean };
+  }>('/api/v1/permissions/check', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }
 
-/** 检查用户权限 POST /api/v1/permissions/check */
-export async function postPermissionsCheck(
+/** 获取数据权限规则列表 获取所有数据权限规则 GET /api/v1/permissions/rules */
+export async function getPermissionsRules(options?: { [key: string]: any }) {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      rule_id?: string;
+      role_id?: string;
+      resource_type?: string;
+      conditions?: Record<string, any>;
+      status?: string;
+    }[];
+  }>('/api/v1/permissions/rules', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** 创建数据权限规则 创建新的数据权限规则 POST /api/v1/permissions/rules */
+export async function postPermissionsRules(
   body: {
-    user_id: string;
+    /** 角色ID */
+    role_id: string;
+    /** 资源类型 */
     resource_type: string;
-    action: string;
+    /** 权限条件 */
+    conditions: Record<string, any>;
   },
   options?: { [key: string]: any },
 ) {
-  return request<any>('/api/v1/permissions/check', {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      rule_id?: string;
+      role_id?: string;
+      resource_type?: string;
+      conditions?: Record<string, any>;
+      status?: string;
+    };
+  }>('/api/v1/permissions/rules', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -118,50 +252,24 @@ export async function postPermissionsCheck(
   });
 }
 
-/** 获取用户权限 GET /api/v1/permissions/user/${param0} */
-export async function getPermissionsUserUserId(
+/** 获取用户权限 获取指定用户的所有权限 GET /api/v1/permissions/users/${param0} */
+export async function getPermissionsUsersUserId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getPermissionsUserUserIdParams,
+  params: API.getPermissionsUsersUserIdParams,
   options?: { [key: string]: any },
 ) {
   const { user_id: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/permissions/user/${param0}`, {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: {
+      permission_id?: string;
+      permission_name?: string;
+      code?: string;
+      description?: string;
+    }[];
+  }>(`/api/v1/permissions/users/${param0}`, {
     method: 'GET',
-    params: { ...queryParams },
-    ...(options || {}),
-  });
-}
-
-/** 为角色分配权限 POST /api/v1/roles/${param0}/permissions */
-export async function postRolesRoleIdPermissions(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.postRolesRoleIdPermissionsParams,
-  body: {
-    permission_ids: string[];
-  },
-  options?: { [key: string]: any },
-) {
-  const { role_id: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/roles/${param0}/permissions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    params: { ...queryParams },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** 移除角色的权限 DELETE /api/v1/roles/${param0}/permissions/${param1} */
-export async function deleteRolesRoleIdPermissionsPermissionId(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.deleteRolesRoleIdPermissionsPermissionIdParams,
-  options?: { [key: string]: any },
-) {
-  const { role_id: param0, permission_id: param1, ...queryParams } = params;
-  return request<any>(`/api/v1/roles/${param0}/permissions/${param1}`, {
-    method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),
   });

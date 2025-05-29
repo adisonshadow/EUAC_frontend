@@ -4,7 +4,7 @@ import auth from '@/services/UAC/api';
 import { message } from 'antd';
 
 interface Props {
-  onSuccess: () => void;
+  onSuccess: (duration: number, trail: { x?: number; y?: number; timestamp?: number }[]) => void;
   onClose: () => void;
   captchaId: string;
 }
@@ -45,10 +45,8 @@ const SliderCaptchaComponent = forwardRef<SliderCaptchaRef, Props>(({ onSuccess,
           if (data.x === controlBarWidth - controlButtonWidth - indicatorBorderWidth) {
             try {
               // 验证滑块位置
-              const verifyResponse = await auth.auth.postCaptchaVerify({
+              const verifyResponse = await auth.captcha.postCaptchaVerify({
                 captcha_id: captchaId,
-                x: data.x,
-                y: data.y,
                 duration: data.duration,
                 trail: data.trail.map(([x, y], index) => ({ 
                   x, 
@@ -61,7 +59,11 @@ const SliderCaptchaComponent = forwardRef<SliderCaptchaRef, Props>(({ onSuccess,
                 return Promise.reject();
               }
 
-              onSuccess();
+              onSuccess(data.duration, data.trail.map(([x, y], index) => ({ 
+                x, 
+                y, 
+                timestamp: Date.now() - (data.duration * (1 - index / data.trail.length))
+              })));
               return Promise.resolve();
             } catch (error) {
               console.log(error);
