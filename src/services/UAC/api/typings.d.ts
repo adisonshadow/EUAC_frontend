@@ -64,12 +64,10 @@ declare namespace API {
     department_id?: string;
     /** 部门名称 */
     name?: string;
-    /** 部门编码 */
-    code?: string;
-    /** 父部门ID */
-    parent_id?: string;
     /** 部门描述 */
     description?: string;
+    /** 父部门ID */
+    parent_id?: string;
     /** 部门状态 */
     status?: 'ACTIVE' | 'INACTIVE';
     /** 创建时间 */
@@ -105,10 +103,8 @@ declare namespace API {
   type getDepartmentsDepartmentIdUsersParams = {
     /** 部门ID */
     department_id: string;
-    /** 页码 */
-    page?: number;
-    /** 每页数量 */
-    size?: number;
+    /** 是否包含子部门的用户 */
+    include_children?: boolean;
   };
 
   type getDepartmentsParams = {
@@ -116,8 +112,8 @@ declare namespace API {
     page?: number;
     /** 每页数量 */
     size?: number;
-    /** 搜索关键词 */
-    search?: string;
+    /** 部门名称（模糊搜索） */
+    name?: string;
     /** 部门状态 */
     status?: 'ACTIVE' | 'INACTIVE';
   };
@@ -138,8 +134,8 @@ declare namespace API {
     limit?: number;
     /** 搜索关键词 */
     search?: string;
-    /** 权限类型 */
-    type?: 'MENU' | 'BUTTON' | 'API';
+    /** 资源类型 */
+    resource_type?: 'MENU' | 'BUTTON' | 'API';
   };
 
   type getPermissionsPermissionIdParams = {
@@ -216,17 +212,27 @@ declare namespace API {
     /** 权限ID */
     permission_id?: string;
     /** 权限名称 */
-    permission_name?: string;
+    name?: string;
     /** 权限编码 */
     code?: string;
     /** 权限描述 */
     description?: string;
-    created_at?: string;
-    updated_at?: string;
-    /** 权限类型 */
-    type?: 'MENU' | 'BUTTON' | 'API';
+    /** 资源类型 */
+    resource_type?: 'MENU' | 'BUTTON' | 'API';
+    /** 操作类型列表 */
+    actions?: ('create' | 'read' | 'update' | 'delete')[];
+    /** 父权限ID */
+    parent_id?: string;
     /** 权限状态 */
     status?: 'ACTIVE' | 'INACTIVE';
+    /** 创建时间 */
+    created_at?: string;
+    /** 更新时间 */
+    updated_at?: string;
+    /** 权限名称 */
+    permission_name?: string;
+    /** 权限类型 */
+    type?: 'MENU' | 'BUTTON' | 'API';
   };
 
   type postPermissionsPermissionIdRolesParams = {

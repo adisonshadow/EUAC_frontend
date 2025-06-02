@@ -4,6 +4,7 @@ import {
   PlusOutlined,
   SaveOutlined,
   CloseOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
 import {
   ActionType,
@@ -17,6 +18,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { tableColumns, departmentDetailFormColumns, departmentEditFormColumns } from "./Schemas";
 import { getDepartmentsTree, postDepartments, putDepartmentsDepartmentId, deleteDepartmentsDepartmentId, getDepartmentsDepartmentId } from "@/services/UAC/api/departments";
 import { useDepartmentOptions } from "@/hooks/useDepartmentOptions";
+import { highlightTableRow } from '@/utils/highlight';
 
 interface DepartmentRecord {
   department_id: string;
@@ -52,6 +54,9 @@ const Page: React.FC = () => {
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [departmentTree, setDepartmentTree] = useState<any[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [highlightedRowId, setHighlightedRowId] = useState<string | null>(null);
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const highlightTimerRef = useRef<number>();
 
   // 递归获取所有部门的 ID
   const getAllDepartmentIds = (departments: DepartmentWithChildren[]): string[] => {
@@ -88,11 +93,11 @@ const Page: React.FC = () => {
       width: 120,
       render: (_: unknown, record: DepartmentRecord) => [
         <Button
-          title="编辑"
-          key="edit"
+          title="查看"
+          key="view"
           type="primary"
           ghost
-          icon={<EditOutlined />}
+          icon={<EyeOutlined />}
           onClick={async () => {
             try {
               setLoading(true);
@@ -116,7 +121,7 @@ const Page: React.FC = () => {
                   setState({
                     detailsValue: processedData,
                     isDetailsViewOpen: true,
-                    isDetailsEditable: true,
+                    isDetailsEditable: false,  // 默认是查看模式
                   });
                 }, 0);
 
@@ -241,6 +246,33 @@ const Page: React.FC = () => {
     console.log("isUpdateModalOpen:", isUpdateModalOpen);
   }, [isUpdateModalOpen]);
 
+  useEffect(() => {
+    if (highlightedRowId) {
+      let count = 0;
+      const maxCount = 6; // 闪烁3次（亮暗各算一次）
+      
+      const blink = () => {
+        if (count >= maxCount) {
+          setHighlightedRowId(null);
+          setIsHighlighted(false);
+          return;
+        }
+        
+        setIsHighlighted(prev => !prev);
+        count++;
+        highlightTimerRef.current = window.setTimeout(blink, 500); // 每500ms切换一次
+      };
+      
+      blink();
+    }
+    
+    return () => {
+      if (highlightTimerRef.current) {
+        clearTimeout(highlightTimerRef.current);
+      }
+    };
+  }, [highlightedRowId]);
+
   return (
     <>
       {contextHolder}
@@ -253,6 +285,13 @@ const Page: React.FC = () => {
           defaultSize="small"
           actionRef={actionRef}
           rowKey="department_id"
+          onRow={(record) => ({
+            id: `department-row-${record.department_id}`,
+            style: {
+              backgroundColor: highlightedRowId === record.department_id && isHighlighted ? '#fffbe6' : undefined,
+              transition: 'background-color 0.3s',
+            },
+          })}
           search={{
             labelWidth: 'auto',
             defaultCollapsed: false,
@@ -422,7 +461,14 @@ const Page: React.FC = () => {
                       updateValue: {},
                     });
                     if (actionRef.current) {
+                      // 设置要高亮的行 ID
+                      setHighlightedRowId(response.data?.department_id || null);
+                      // 重新加载表格
                       actionRef.current.reload();
+                      // 3秒后清除高亮状态
+                      setTimeout(() => {
+                        setHighlightedRowId(null);
+                      }, 3000);
                     }
                     return true;
                   } else {

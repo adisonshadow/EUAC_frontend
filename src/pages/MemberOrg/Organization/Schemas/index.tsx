@@ -3,18 +3,10 @@ import UUIDDisplay from "@/components/UUIDDisplay";
 import { useModel } from '@umijs/max';
 import { getDepartmentsTree } from "@/services/UAC/api/departments";
 import { useEffect, useState } from "react";
-
-// 自定义字段类型
-interface CustomDepartmentFieldType extends Omit<ProFormColumnsType<any>, 'valueType'> {
-  ifShowInTable?: boolean;
-  ifShowInDepartmentDetail?: boolean;
-  ifShowInDepartmentEdit?: boolean;
-  valueType?: ProFormColumnsType<any>['valueType'];
-  copyable?: boolean;
-}
+import type { MixedFieldType } from "@/types/schema";
 
 // 字段定义
-export const fieldDefinitions: CustomDepartmentFieldType[] = [
+export const fieldDefinitions: MixedFieldType[] = [
   {
     title: "部门名称",
     dataIndex: "name",
@@ -27,8 +19,8 @@ export const fieldDefinitions: CustomDepartmentFieldType[] = [
       ]
     },
     ifShowInTable: true,
-    ifShowInDepartmentDetail: true,
-    ifShowInDepartmentEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
     width: 240,
   },
   {
@@ -38,8 +30,8 @@ export const fieldDefinitions: CustomDepartmentFieldType[] = [
     copyable: true,
     ifShowInTable: true,
     hideInSearch: true,
-    ifShowInDepartmentDetail: true,
-    ifShowInDepartmentEdit: false,
+    ifShowInDetail: true,
+    ifShowInForm: false,
   },
   {
     title: "上级部门",
@@ -62,8 +54,8 @@ export const fieldDefinitions: CustomDepartmentFieldType[] = [
       },
     },
     ifShowInTable: true,
-    ifShowInDepartmentDetail: true,
-    ifShowInDepartmentEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
   },
   {
     title: "创建时间",
@@ -72,8 +64,8 @@ export const fieldDefinitions: CustomDepartmentFieldType[] = [
     readonly: true,
     hideInSearch: true,
     ifShowInTable: true,
-    ifShowInDepartmentDetail: true,
-    ifShowInDepartmentEdit: false,
+    ifShowInDetail: true,
+    ifShowInForm: false,
     width: 180,
   },
   {
@@ -83,8 +75,8 @@ export const fieldDefinitions: CustomDepartmentFieldType[] = [
     readonly: true,
     hideInSearch: true,
     ifShowInTable: true,
-    ifShowInDepartmentDetail: true,
-    ifShowInDepartmentEdit: false,
+    ifShowInDetail: true,
+    ifShowInForm: false,
     width: 180,
   },
 ];
@@ -123,7 +115,7 @@ export const tableColumns = fieldDefinitions
 
 // 部门详情表单配置
 export const departmentDetailFormColumns = fieldDefinitions
-  .filter(field => field.ifShowInDepartmentDetail)
+  .filter(field => field.ifShowInDetail)
   .map(field => {
     const { width, ...rest } = field;
     return {
@@ -133,7 +125,7 @@ export const departmentDetailFormColumns = fieldDefinitions
 
 // 部门编辑表单配置
 export const departmentEditFormColumns = fieldDefinitions
-  .filter(field => field.ifShowInDepartmentEdit)
+  .filter(field => field.ifShowInForm)
   .map(field => {
     const { width, ...rest } = field;
     return {
@@ -149,8 +141,8 @@ export const useDepartmentOptions = () => {
     const fetchDepartments = async () => {
       try {
         const response = await getDepartmentsTree();
-        if (response.code === 200 && response.data) {
-          setDepartmentTree(response.data);
+        if (response.code === 200 && response.data?.items) {
+          setDepartmentTree(response.data.items);
         }
       } catch (error) {
         console.error('获取部门树失败:', error);

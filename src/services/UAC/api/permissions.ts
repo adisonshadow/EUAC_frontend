@@ -20,7 +20,8 @@ export async function getPermissions(
         name?: string;
         code?: string;
         description?: string;
-        type?: string;
+        resource_type?: string;
+        actions?: string[];
         parent_id?: string;
         created_at?: string;
       }[];
@@ -48,8 +49,10 @@ export async function postPermissions(
     code: string;
     /** 权限描述 */
     description?: string;
-    /** 权限类型 */
-    type?: 'MENU' | 'BUTTON' | 'API';
+    /** 资源类型 */
+    resource_type: 'MENU' | 'BUTTON' | 'API';
+    /** 操作类型列表 */
+    actions: ('create' | 'read' | 'update' | 'delete')[];
     /** 父权限ID */
     parent_id?: string;
   },
@@ -63,7 +66,8 @@ export async function postPermissions(
       name?: string;
       code?: string;
       description?: string;
-      type?: string;
+      resource_type?: string;
+      actions?: string[];
       parent_id?: string;
       created_at?: string;
     };
@@ -92,7 +96,8 @@ export async function getPermissionsPermissionId(
       name?: string;
       code?: string;
       description?: string;
-      type?: string;
+      resource_type?: string;
+      actions?: string[];
       parent_id?: string;
       created_at?: string;
       updated_at?: string;
@@ -113,8 +118,10 @@ export async function putPermissionsPermissionId(
     name?: string;
     /** 权限描述 */
     description?: string;
-    /** 权限类型 */
-    type?: 'MENU' | 'BUTTON' | 'API';
+    /** 资源类型 */
+    resource_type?: 'MENU' | 'BUTTON' | 'API';
+    /** 操作类型列表 */
+    actions?: ('create' | 'read' | 'update' | 'delete')[];
     /** 父权限ID */
     parent_id?: string;
   },
@@ -126,9 +133,12 @@ export async function putPermissionsPermissionId(
     message?: string;
     data?: {
       permission_id?: string;
-      permission_name?: string;
+      name?: string;
       code?: string;
       description?: string;
+      resource_type?: string;
+      actions?: string[];
+      parent_id?: string;
     };
   }>(`/api/v1/permissions/${param0}`, {
     method: 'PUT',

@@ -52,6 +52,22 @@ export default [
       // },
     ]
   },
+  {
+    path: '/permissions',
+    name: '权限管理',
+    icon: 'bookOutlined',
+    routes: [
+      {
+        path: '/permissions',
+        redirect: '/permissions/menu',
+      },
+      {
+        path: '/permissions/menu',
+        name: 'Menu权限',
+        component: './Permissions/Menu',
+      },
+    ]
+  },
   // {
   //   path: '/workCard',
   //   name: '数字化工卡',

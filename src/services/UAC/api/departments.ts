@@ -13,17 +13,16 @@ export async function getDepartments(
     message?: string;
     data?: {
       total?: number;
-      page?: number;
+      current?: number;
       size?: number;
       items?: {
         department_id?: string;
         name?: string;
-        code?: string;
         description?: string;
         parent_id?: string;
-        manager_id?: string;
         status?: string;
         created_at?: string;
+        updated_at?: string;
       }[];
     };
   }>('/api/v1/departments', {
@@ -45,14 +44,10 @@ export async function postDepartments(
   body: {
     /** 部门名称 */
     name: string;
-    /** 部门编码 */
-    code?: string;
     /** 部门描述 */
     description?: string;
     /** 父部门ID */
     parent_id?: string;
-    /** 部门主管ID */
-    manager_id?: string;
     /** 部门状态 */
     status?: 'ACTIVE' | 'INACTIVE';
   },
@@ -64,10 +59,8 @@ export async function postDepartments(
     data?: {
       department_id?: string;
       name?: string;
-      code?: string;
       description?: string;
       parent_id?: string;
-      manager_id?: string;
       status?: string;
       created_at?: string;
     };
@@ -94,14 +87,11 @@ export async function getDepartmentsDepartmentId(
     data?: {
       department_id?: string;
       name?: string;
-      code?: string;
       description?: string;
       parent_id?: string;
-      manager_id?: string;
       status?: string;
       created_at?: string;
       updated_at?: string;
-      manager?: { user_id?: string; name?: string };
       parent?: { department_id?: string; name?: string };
     };
   }>(`/api/v1/departments/${param0}`, {
@@ -122,8 +112,6 @@ export async function putDepartmentsDepartmentId(
     description?: string;
     /** 父部门ID */
     parent_id?: string;
-    /** 部门主管ID */
-    manager_id?: string;
     /** 部门状态 */
     status?: 'ACTIVE' | 'INACTIVE';
   },
@@ -136,10 +124,8 @@ export async function putDepartmentsDepartmentId(
     data?: {
       department_id?: string;
       name?: string;
-      code?: string;
       description?: string;
       parent_id?: string;
-      manager_id?: string;
       status?: string;
       updated_at?: string;
     };
@@ -182,25 +168,16 @@ export async function getDepartmentsDepartmentIdUsers(
     code?: number;
     message?: string;
     data?: {
-      total?: number;
-      page?: number;
-      size?: number;
-      items?: {
-        user_id?: string;
-        username?: string;
-        name?: string;
-        email?: string;
-        phone?: string;
-        status?: string;
-      }[];
-    };
+      user_id?: string;
+      username?: string;
+      name?: string;
+      email?: string;
+      phone?: string;
+      status?: string;
+    }[];
   }>(`/api/v1/departments/${param0}/users`, {
     method: 'GET',
     params: {
-      // page has a default value: 1
-      page: '1',
-      // size has a default value: 10
-      size: '10',
       ...queryParams,
     },
     ...(options || {}),
@@ -212,17 +189,7 @@ export async function getDepartmentsTree(options?: { [key: string]: any }) {
   return request<{
     code?: number;
     message?: string;
-    data?: {
-      department_id?: string;
-      name?: string;
-      code?: string;
-      parent_id?: string;
-      description?: string;
-      status?: 'ACTIVE' | 'INACTIVE';
-      created_at?: string;
-      updated_at?: string;
-      children?: API.DepartmentTreeItem[];
-    }[];
+    data?: { items?: API.DepartmentTreeItem[] };
   }>('/api/v1/departments/tree', {
     method: 'GET',
     ...(options || {}),

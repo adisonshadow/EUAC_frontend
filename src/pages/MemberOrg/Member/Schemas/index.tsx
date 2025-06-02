@@ -6,26 +6,18 @@ import { Image } from "antd";
 import { getImageUrl } from '@/utils/image';
 import { useModel } from '@umijs/max';
 import { statusEnum, genderEnum } from '@/enums';
-
-// 自定义字段类型
-interface CustomUserFieldType extends Omit<ProFormColumnsType<any>, 'valueType'> {
-  ifShowInTable?: boolean;
-  ifShowInUserDetail?: boolean;
-  ifShowInUserEdit?: boolean;
-  valueType?: ProFormColumnsType<any>['valueType'];
-  copyable?: boolean;
-}
+import type { MixedFieldType } from "@/types/schema";
 
 // 字段定义
-export const fieldDefinitions: CustomUserFieldType[] = [
+export const fieldDefinitions: MixedFieldType[] = [
   {
     title: "用户ID",
     dataIndex: "user_id",
     valueType: 'text',
     copyable: true,
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: false,
+    ifShowInDetail: true,
+    ifShowInForm: false,
     width: 90,
   },
   {
@@ -40,8 +32,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
       ]
     },
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
     width: 120,
   },
   {
@@ -51,8 +43,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
       rules: [{ required: true, message: '请输入姓名' }]
     },
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
     width: 90,
   },
   {
@@ -75,8 +67,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
       options: [], // 这里先设置为空数组，实际值会在组件中动态设置
     },
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
     width: 200,
   },
   {
@@ -88,8 +80,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
       maxCount: 1,
     },
     ifShowInTable: false,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
   },
   {
     title: "性别",
@@ -97,8 +89,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
     valueType: 'select',
     valueEnum: genderEnum,
     ifShowInTable: false,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
   },
   
   {
@@ -112,8 +104,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
       ]
     },
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
     width: 200,
   },
   {
@@ -121,8 +113,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
     dataIndex: "phone",
     valueType: 'text',
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
     width: 120,
   },
   {
@@ -131,8 +123,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
     valueType: 'select',
     valueEnum: statusEnum,
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: true,
+    ifShowInDetail: true,
+    ifShowInForm: true,
     width: 100,
   },
   {
@@ -142,8 +134,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
     readonly: true,
     hideInSearch: true,
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: false,
+    ifShowInDetail: true,
+    ifShowInForm: false,
     width: 180,
   },
   {
@@ -153,8 +145,8 @@ export const fieldDefinitions: CustomUserFieldType[] = [
     readonly: true,
     hideInSearch: true,
     ifShowInTable: true,
-    ifShowInUserDetail: true,
-    ifShowInUserEdit: false,
+    ifShowInDetail: true,
+    ifShowInForm: false,
     width: 180,
   },
 ];
@@ -219,7 +211,7 @@ export const tableColumns = fieldDefinitions
 
 // 用户详情表单配置
 export const userDetailFormColumns = fieldDefinitions
-  .filter(field => field.ifShowInUserDetail)
+  .filter(field => field.ifShowInDetail)
   .map(field => {
     const { width, ...rest } = field;
     if (field.dataIndex === 'avatar') {
@@ -262,7 +254,7 @@ export const userDetailFormColumns = fieldDefinitions
 
 // 用户编辑表单配置
 export const userEditFormColumns = fieldDefinitions
-  .filter(field => field.ifShowInUserEdit)
+  .filter(field => field.ifShowInForm)
   .map(field => {
     const { width, ...rest } = field;
     if (field.dataIndex === 'avatar') {
