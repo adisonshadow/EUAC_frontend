@@ -49,3 +49,7 @@ yarn install --production --offline
  git push -u origin main
 
 ```
+
+
+access、create、update、delete
+View、Create、Approve、Export、Config、audit、disable

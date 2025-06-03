@@ -36,6 +36,22 @@ export default defineConfig({
     // 如果不想要 configProvide 动态设置主题需要把这个设置为 default
     // 只有设置为 variable， 才能使用 configProvide 动态设置主色调
     'root-entry-name': 'variable',
+    token: {
+      colorPrimary: '#137cfd',
+      colorInfo: '#2084ff',
+      colorSuccess: '#4cc60f',
+      colorError: '#fc3c3f',
+      colorTextBase: '#1b1b1b',
+      sizeStep: 4,
+      borderRadius: 4,
+      wireframe: false,
+    },
+    components: {
+      Button: {
+        algorithm: true,
+        defaultHoverColor: 'rgb(83,172,255)',
+      },
+    },
   },
   /**
    * @name moment 的国际化配置

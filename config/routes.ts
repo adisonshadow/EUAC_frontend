@@ -45,6 +45,11 @@ export default [
         name: '组织架构管理',
         component: './MemberOrg/Organization',
       },
+      {
+        path: '/member_org/role',
+        name: '角色管理',
+        component: './MemberOrg/Role',
+      },
       // {
       //   path: '/member_org/team',
       //   name: '组与团队管理',

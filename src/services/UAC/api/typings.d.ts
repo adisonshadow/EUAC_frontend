@@ -123,7 +123,7 @@ declare namespace API {
     user_id: any;
     /** 资源类型 */
     resource_type: any;
-    /** 操作类型 */
+    /** 操作类型，多个操作类型用逗号分隔，例如：create,read,update */
     action: any;
   };
 
@@ -146,6 +146,11 @@ declare namespace API {
   type getPermissionsUsersUserIdParams = {
     /** 用户ID */
     user_id: any;
+  };
+
+  type getRolesCheckPermissionParams = {
+    /** 权限编码 */
+    permission_code: any;
   };
 
   type getRolesParams = {
@@ -224,15 +229,13 @@ declare namespace API {
     /** 父权限ID */
     parent_id?: string;
     /** 权限状态 */
-    status?: 'ACTIVE' | 'INACTIVE';
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
     /** 创建时间 */
     created_at?: string;
     /** 更新时间 */
     updated_at?: string;
-    /** 权限名称 */
-    permission_name?: string;
-    /** 权限类型 */
-    type?: 'MENU' | 'BUTTON' | 'API';
+    /** 删除时间（软删除） */
+    deleted_at?: string;
   };
 
   type postPermissionsPermissionIdRolesParams = {
@@ -306,10 +309,39 @@ declare namespace API {
     description?: string;
     /** 角色状态 */
     status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+    /** 创建时间 */
     created_at?: string;
+    /** 更新时间 */
     updated_at?: string;
+    /** 删除时间 */
+    deleted_at?: string;
     /** 角色权限列表 */
     permissions?: Permission[];
+  };
+
+  type RoleListResponse = {
+    code?: number;
+    message?: string;
+    data?: { total?: number; items?: Role[]; page?: number; size?: number };
+  };
+
+  type RolePermission = {
+    /** 权限ID */
+    permission_id?: string;
+    /** 权限名称 */
+    name?: string;
+    /** 权限编码 */
+    code?: string;
+    /** 资源类型 */
+    resource_type?: 'MENU' | 'BUTTON' | 'API';
+    /** 操作类型列表 */
+    actions?: ('create' | 'read' | 'update' | 'delete')[];
+  };
+
+  type RoleResponse = {
+    code?: number;
+    message?: string;
+    data?: Role;
   };
 
   type User = {

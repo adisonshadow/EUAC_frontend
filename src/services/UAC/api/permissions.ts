@@ -193,7 +193,7 @@ export async function postPermissionsPermissionIdRoles(
   );
 }
 
-/** 检查权限 检查用户是否拥有指定权限 GET /api/v1/permissions/check */
+/** 检查权限 检查用户是否拥有指定资源类型的多个操作权限 GET /api/v1/permissions/check */
 export async function getPermissionsCheck(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getPermissionsCheckParams,
@@ -202,7 +202,15 @@ export async function getPermissionsCheck(
   return request<{
     code?: number;
     message?: string;
-    data?: { has_permission?: boolean };
+    data?: {
+      has_permission?: boolean;
+      permissions?: {
+        permission_id?: string;
+        name?: string;
+        code?: string;
+        actions?: string[];
+      }[];
+    };
   }>('/api/v1/permissions/check', {
     method: 'GET',
     params: {

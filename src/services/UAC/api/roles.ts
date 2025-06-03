@@ -8,27 +8,7 @@ export async function getRoles(
   params: API.getRolesParams,
   options?: { [key: string]: any },
 ) {
-  return request<{
-    code?: number;
-    message?: string;
-    data?: {
-      total?: number;
-      items?: {
-        role_id?: string;
-        role_name?: string;
-        code?: string;
-        description?: string;
-        status?: string;
-        permissions?: {
-          permission_id?: string;
-          name?: string;
-          code?: string;
-        }[];
-      }[];
-      page?: number;
-      size?: number;
-    };
-  }>('/api/v1/roles', {
+  return request<API.RoleListResponse>('/api/v1/roles', {
     method: 'GET',
     params: {
       ...params,
@@ -41,30 +21,17 @@ export async function getRoles(
 export async function postRoles(
   body: {
     /** 角色名称 */
-    name: string;
+    role_name: string;
     /** 角色编码 */
     code: string;
     /** 角色描述 */
     description?: string;
     /** 角色状态 */
-    status?: 'ACTIVE' | 'INACTIVE';
-    /** 权限ID列表 */
-    permissions?: string[];
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
   },
   options?: { [key: string]: any },
 ) {
-  return request<{
-    code?: number;
-    message?: string;
-    data?: {
-      role_id?: string;
-      name?: string;
-      code?: string;
-      description?: string;
-      status?: string;
-      created_at?: string;
-    };
-  }>('/api/v1/roles', {
+  return request<API.RoleResponse>('/api/v1/roles', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -81,18 +48,7 @@ export async function getRolesRoleId(
   options?: { [key: string]: any },
 ) {
   const { role_id: param0, ...queryParams } = params;
-  return request<{
-    code?: number;
-    message?: string;
-    data?: {
-      role_id?: string;
-      role_name?: string;
-      code?: string;
-      description?: string;
-      status?: string;
-      permissions?: { permission_id?: string; name?: string; code?: string }[];
-    };
-  }>(`/api/v1/roles/${param0}`, {
+  return request<API.RoleResponse>(`/api/v1/roles/${param0}`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {}),
@@ -108,23 +64,11 @@ export async function putRolesRoleId(
     role_name?: string;
     /** 角色描述 */
     description?: string;
-    /** 角色状态 */
-    status?: 'ACTIVE' | 'ARCHIVED';
   },
   options?: { [key: string]: any },
 ) {
   const { role_id: param0, ...queryParams } = params;
-  return request<{
-    code?: number;
-    message?: string;
-    data?: {
-      role_id?: string;
-      role_name?: string;
-      code?: string;
-      description?: string;
-      status?: string;
-    };
-  }>(`/api/v1/roles/${param0}`, {
+  return request<API.RoleResponse>(`/api/v1/roles/${param0}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -204,12 +148,10 @@ export async function postRolesRoleIdPermissions(
   );
 }
 
-/** 检查用户权限 检查当前用户是否拥有指定权限 POST /api/v1/roles/check-permission */
-export async function postRolesCheckPermission(
-  body: {
-    /** 权限编码 */
-    permission_code: string;
-  },
+/** 检查用户权限 检查当前用户是否拥有指定权限 GET /api/v1/roles/check-permission */
+export async function getRolesCheckPermission(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getRolesCheckPermissionParams,
   options?: { [key: string]: any },
 ) {
   return request<{
@@ -217,11 +159,10 @@ export async function postRolesCheckPermission(
     message?: string;
     data?: { has_permission?: boolean };
   }>('/api/v1/roles/check-permission', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+    method: 'GET',
+    params: {
+      ...params,
     },
-    data: body,
     ...(options || {}),
   });
 }

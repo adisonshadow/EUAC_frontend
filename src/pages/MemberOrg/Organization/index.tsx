@@ -19,6 +19,7 @@ import { tableColumns, departmentDetailFormColumns, departmentEditFormColumns } 
 import { getDepartmentsTree, postDepartments, putDepartmentsDepartmentId, deleteDepartmentsDepartmentId, getDepartmentsDepartmentId } from "@/services/UAC/api/departments";
 import { useDepartmentOptions } from "@/hooks/useDepartmentOptions";
 import { highlightTableRow } from '@/utils/highlight';
+import SearchForm from '@/components/SearchForm';
 
 interface DepartmentRecord {
   department_id: string;
@@ -273,6 +274,22 @@ const Page: React.FC = () => {
     };
   }, [highlightedRowId]);
 
+  // 处理搜索
+  const handleSearch = (value: string) => {
+    setSearchText(value);
+    if (actionRef.current) {
+      actionRef.current.reload();
+    }
+  };
+
+  // 处理重置
+  const handleReset = () => {
+    setSearchText('');
+    if (actionRef.current) {
+      actionRef.current.reload();
+    }
+  };
+
   return (
     <>
       {contextHolder}
@@ -292,11 +309,15 @@ const Page: React.FC = () => {
               transition: 'background-color 0.3s',
             },
           })}
-          search={{
-            labelWidth: 'auto',
-            defaultCollapsed: false,
-            // filterType: 'light',
-          }}
+          headerTitle={
+            <SearchForm
+              key="search"
+              onSearch={handleSearch}
+              onReset={handleReset}
+              placeholder="请输入部门名称"
+            />
+          }
+          search={false}
           columns={[
             {
               title: '部门名称',
@@ -320,12 +341,6 @@ const Page: React.FC = () => {
                     {afterStr}
                   </span>
                 );
-              },
-              search: {
-                transform: (value: string) => {
-                  setSearchText(value);
-                  return {};
-                },
               },
             },
             ...columns.filter((col: any) => col.dataIndex !== 'name'),

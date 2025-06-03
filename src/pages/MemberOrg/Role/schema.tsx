@@ -1,14 +1,12 @@
-import { Button, message } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
 import type { ProColumns } from "@ant-design/pro-components";
-import type { MenuPermission } from "./types";
+import type { Role } from "./types";
 import type { MixedFieldType } from "@/types/schema";
 
 // 字段定义
 export const fieldDefinitions: MixedFieldType[] = [
   {
-    title: "权限ID",
-    dataIndex: "permission_id",
+    title: "角色ID",
+    dataIndex: "role_id",
     valueType: 'text',
     copyable: true,
     ifShowInTable: false,
@@ -17,13 +15,13 @@ export const fieldDefinitions: MixedFieldType[] = [
     width: 90,
   },
   {
-    title: "权限名称",
-    dataIndex: "name",
+    title: "角色名称",
+    dataIndex: "role_name",
     formItemProps: {
       rules: [
-        { required: true, message: '请输入权限名称' },
-        { min: 2, message: '权限名称至少2个字符' },
-        { max: 50, message: '权限名称最多50个字符' },
+        { required: true, message: '请输入角色名称' },
+        { min: 2, message: '角色名称至少2个字符' },
+        { max: 50, message: '角色名称最多50个字符' },
       ]
     },
     ifShowInTable: true,
@@ -32,14 +30,14 @@ export const fieldDefinitions: MixedFieldType[] = [
     width: 220,
   },
   {
-    title: "权限编码",
+    title: "角色编码",
     dataIndex: "code",
     formItemProps: {
       rules: [
-        { required: true, message: '请输入权限编码' },
-        { min: 2, message: '权限编码至少2个字符' },
-        { max: 50, message: '权限编码最多50个字符' },
-        { pattern: /^[A-Za-z0-9:_]+$/, message: '权限编码只能包含大小写字母、数字、冒号和下划线' },
+        { required: true, message: '请输入角色编码' },
+        { min: 2, message: '角色编码至少2个字符' },
+        { max: 50, message: '角色编码最多50个字符' },
+        { pattern: /^[A-Za-z0-9:_]+$/, message: '角色编码只能包含大小写字母、数字、冒号和下划线' },
       ]
     },
     ifShowInTable: true,
@@ -57,31 +55,12 @@ export const fieldDefinitions: MixedFieldType[] = [
     width: 200,
   },
   {
-    title: "操作权限",
-    dataIndex: "actions",
-    valueType: 'checkbox',
-    valueEnum: {
-      read: { text: '可见' },
-      create: { text: '可用' },
-    },
-    formItemProps: {
-      rules: [
-        { required: true, message: '请选择操作权限' },
-      ],
-    },
-    initialValue: ['read', 'create'],
-    ifShowInTable: true,
-    ifShowInDetail: true,
-    ifShowInForm: true,
-    width: 120,
-  },
-  {
     title: "状态",
     dataIndex: "status",
     valueType: 'select',
     valueEnum: {
       ACTIVE: { text: '启用', status: 'Success' },
-      INACTIVE: { text: '禁用', status: 'Error' },
+      ARCHIVED: { text: '禁用', status: 'Error' },
     },
     initialValue: 'ACTIVE',
     ifShowInTable: true,
@@ -112,26 +91,31 @@ export const fieldDefinitions: MixedFieldType[] = [
     width: 180,
   },
   {
-    title: "资源类型",
-    dataIndex: "resource_type",
-    valueType: 'text',
-    initialValue: 'MENU',
-    ifShowInForm: false,
+    title: "权限列表",
+    dataIndex: "permissions",
+    valueType: 'select',
+    fieldProps: {
+      showSearch: true,
+      filterOption: (input: string, option: any) =>
+        (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
+    },
     ifShowInTable: false,
-    ifShowInDetail: false,
+    ifShowInDetail: true,
+    ifShowInForm: false,
+    width: 300,
   },
 ];
 
 // 表格列定义
-export const tableColumns: ProColumns<MenuPermission>[] = [
+export const tableColumns: ProColumns<Role>[] = [
   {
-    title: "权限名称",
-    dataIndex: "name",
+    title: "角色名称",
+    dataIndex: "role_name",
     width: 220,
     search: false,
   },
   {
-    title: "权限编码",
+    title: "角色编码",
     dataIndex: "code",
     width: 120,
     search: false,
@@ -142,32 +126,11 @@ export const tableColumns: ProColumns<MenuPermission>[] = [
     valueType: 'textarea',
     width: 200,
     search: false,
-    render: (_, record: MenuPermission) => {
-      if (record.permission_id.startsWith('virtual-')) {
+    render: (_, record: Role) => {
+      if (record.role_id.startsWith('virtual-')) {
         return '-';
       }
       return record.description;
-    },
-  },
-  {
-    title: "操作权限",
-    dataIndex: "actions",
-    width: 120,
-    search: false,
-    render: (_, record: MenuPermission) => {
-      if (record.permission_id.startsWith('virtual-')) {
-        return '-';
-      }
-      if (!record.actions || !Array.isArray(record.actions)) {
-        return '-';
-      }
-      const actionMap: Record<string, string> = {
-        read: '可见',
-        create: '可用',
-        update: '更新',
-        delete: '删除',
-      };
-      return record.actions.map(action => actionMap[action] || action).join('、');
     },
   },
   {
@@ -176,15 +139,15 @@ export const tableColumns: ProColumns<MenuPermission>[] = [
     valueType: 'select',
     width: 100,
     search: false,
-    render: (_, record: MenuPermission) => {
-      if (record.permission_id.startsWith('virtual-')) {
+    render: (_, record: Role) => {
+      if (record.role_id.startsWith('virtual-')) {
         return '-';
       }
       const statusMap = {
         ACTIVE: { text: '启用', status: 'Success' },
-        INACTIVE: { text: '禁用', status: 'Error' },
+        ARCHIVED: { text: '禁用', status: 'Error' },
       };
-      return statusMap[record.status as keyof typeof statusMap]?.text || '-';
+      return statusMap[record.status]?.text || '-';
     },
   },
 ];

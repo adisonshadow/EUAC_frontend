@@ -5,15 +5,23 @@ import {
   ProTable,
   type ProColumns,
 } from "@ant-design/pro-components";
-import { Button, message, Space, Modal, Drawer, Spin } from "antd";
+import { Button, message, Space, Modal, Drawer, Spin, Radio, Typography } from "antd";
 import { EyeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
-import React, { useRef, useState } from "react";
-import { getPermissions, postPermissions, putPermissionsPermissionId, deletePermissionsPermissionId, getPermissionsPermissionId } from "@/services/UAC/api/permissions";
+import React, { useRef, useState, useEffect } from "react";
+import { 
+  getRoles, 
+  postRoles, 
+  putRolesRoleId, 
+  deleteRolesRoleId, 
+  getRolesRoleId,
+  postRolesRoleIdPermissions,
+  putRolesRoleIdPermissions,
+} from "@/services/UAC/api/roles";
+import { getPermissions } from "@/services/UAC/api/permissions";
 import { tableColumns, formFields, detailFields } from "./schema";
-import { buildMenuTree } from "./utils";
-import type { PermissionResponse, MenuPermission } from "./types";
+import { buildRoleTree } from "./utils";
+import type { Role } from "./types";
 import { useSetState } from "ahooks";
-import { highlightTableRow } from '@/utils/highlight';
 import SearchForm from '@/components/SearchForm';
 import { Form } from 'antd';
 
@@ -30,24 +38,23 @@ const Page: React.FC = () => {
   const [isHighlighted, setIsHighlighted] = useState(false);
   const highlightTimerRef = useRef<number>();
   const [editform] = Form.useForm();
+  const [statusFilter, setStatusFilter] = useState<'ACTIVE' | 'ALL'>('ACTIVE');
 
-  const searchFormRef = useRef();
-
-  // 递归获取所有权限的 ID
-  const getAllPermissionIds = (permissions: MenuPermission[]): string[] => {
-    return permissions.reduce((acc: string[], permission: MenuPermission) => {
-      if (permission.permission_id) {
-        acc.push(permission.permission_id);
+  // 递归获取所有角色的 ID
+  const getAllRoleIds = (roles: Role[]): string[] => {
+    return roles.reduce((acc: string[], role: Role) => {
+      if (role.role_id) {
+        acc.push(role.role_id);
       }
-      if (permission.children && permission.children.length > 0) {
-        acc.push(...getAllPermissionIds(permission.children));
+      if (role.children && role.children.length > 0) {
+        acc.push(...getAllRoleIds(role.children));
       }
       return acc;
     }, []);
   };
 
   // 递归处理数据，添加搜索文本
-  const processDataWithSearch = (data: MenuPermission[], searchText: string): MenuPermission[] => {
+  const processDataWithSearch = (data: Role[], searchText: string): Role[] => {
     return data.map(item => {
       const processedItem = {
         ...item,
@@ -62,10 +69,10 @@ const Page: React.FC = () => {
 
   const [state, setState] = useSetState<{
     isCreateModalOpen: boolean;
-    createValue: Partial<MenuPermission>;
+    createValue: Partial<Role>;
     isDetailsViewOpen: boolean;
     isDetailsEditable: boolean;
-    detailsValue: Partial<MenuPermission>;
+    detailsValue: Partial<Role> & { role_id?: string };
   }>({
     isCreateModalOpen: false,
     createValue: {},
@@ -96,37 +103,87 @@ const Page: React.FC = () => {
     }
   };
 
+  // 获取权限列表
+  const fetchPermissions = async () => {
+    try {
+      const response = await getPermissions({});
+      if (response.code === 200 && response.data?.items) {
+        return response.data.items.map(item => ({
+          label: item.name,
+          value: item.permission_id,
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('获取权限列表失败:', error);
+      return [];
+    }
+  };
+
+  // 更新权限字段的 request 函数
+  const updatePermissionsRequest = async () => {
+    const permissions = await fetchPermissions();
+    // 更新 schema 中的权限字段
+    const permissionField = formFields.find(field => field.dataIndex === 'permissions');
+    if (permissionField) {
+      permissionField.request = async () => permissions;
+    }
+    return permissions;
+  };
+
   // 处理保存详情
   const handleSaveDetails = async (values: any) => {
     try {
       setLoading(true);
       setSaving(true);
-      if (!detailsValue.permission_id) {
-        messageApi.error('权限ID不存在');
+      if (!detailsValue.role_id) {
+        messageApi.error('角色ID不存在');
         return;
       }
 
+      // 更新基本信息
       const updateData = {
-        name: values.name,
-        code: values.code,
+        role_name: values.role_name,
         description: values.description,
-        actions: values.actions as ('create' | 'read' | 'update' | 'delete')[],
-        resource_type: 'MENU' as const,
+        status: values.status,
       };
       
-      const response = await putPermissionsPermissionId(
-        { permission_id: detailsValue.permission_id },
+      const response = await putRolesRoleId(
+        { role_id: detailsValue.role_id },
         updateData
       );
 
       if (response.code && response.code >= 200 && response.code < 300) {
+        // 更新权限
+        if (values.permissions) {
+          const currentPermissions = detailsValue.permissions?.map(p => p.permission_id) || [];
+          const newPermissions = values.permissions;
+          
+          const addPermissions = newPermissions.filter((id: string) => !currentPermissions.includes(id));
+          const removePermissions = currentPermissions.filter(id => !newPermissions.includes(id));
+
+          if (addPermissions.length > 0 || removePermissions.length > 0) {
+            await putRolesRoleIdPermissions(
+              { role_id: detailsValue.role_id },
+              {
+                add_permissions: addPermissions,
+                remove_permissions: removePermissions,
+              }
+            );
+          }
+        }
+
         messageApi.success('更新成功');
         setState({ 
           isDetailsEditable: false,
           detailsValue: { 
             ...detailsValue, 
             ...updateData,
-          } as MenuPermission,
+            permissions: values.permissions ? 
+              (await fetchPermissions()).filter(p => values.permissions.includes(p.value))
+                .map(p => ({ permission_id: p.value, name: p.label, code: '' })) : 
+              detailsValue.permissions,
+          } as Role,
         });
         if (actionRef.current) {
           actionRef.current.reload();
@@ -135,7 +192,7 @@ const Page: React.FC = () => {
         messageApi.error(response.message || '更新失败');
       }
     } catch (error) {
-      console.error('更新权限信息失败:', error);
+      console.error('更新角色信息失败:', error);
       messageApi.error('更新失败');
     } finally {
       setLoading(false);
@@ -143,15 +200,27 @@ const Page: React.FC = () => {
     }
   };
 
+  // 在组件挂载时获取权限列表
+  useEffect(() => {
+    updatePermissionsRequest();
+  }, []);
+
   // 添加操作列
-  const columns: ProColumns<MenuPermission>[] = [
+  const columns: ProColumns<Role>[] = [
     {
-      title: "权限名称",
-      dataIndex: "name",
+      title: "角色名称",
+      dataIndex: "role_name",
       width: 220,
-      render: (dom: React.ReactNode, record: MenuPermission) => {
+      render: (dom: React.ReactNode, record: Role) => {
         const text = String(dom || '');
         const searchText = record._searchText || '';
+        
+        // 如果是虚拟节点，直接返回文本
+        if (record.role_id.startsWith('virtual-')) {
+          return text;
+        }
+
+        // 如果有搜索文本，添加高亮
         if (!searchText) return text;
         
         const index = text.toLowerCase().indexOf(searchText.toLowerCase());
@@ -171,16 +240,28 @@ const Page: React.FC = () => {
       },
     },
     {
-      title: "权限编码",
+      title: "角色编码",
       dataIndex: "code",
       width: 120,
-      render: (dom: React.ReactNode, record: MenuPermission) => {
+      render: (dom: React.ReactNode, record: Role) => {
         const text = String(dom || '');
         const searchText = record._searchText || '';
-        if (!searchText) return text;
+        
+        // 如果是虚拟节点，直接返回文本
+        if (record.role_id.startsWith('virtual-')) {
+          return text;
+        }
+
+        // 如果是禁用状态，添加删除线
+        const content = record.status === 'ARCHIVED' ? (
+          <Typography.Text delete>{text}</Typography.Text>
+        ) : text;
+
+        // 如果有搜索文本，添加高亮
+        if (!searchText) return content;
         
         const index = text.toLowerCase().indexOf(searchText.toLowerCase());
-        if (index === -1) return text;
+        if (index === -1) return content;
         
         const beforeStr = text.substring(0, index);
         const matchStr = text.substring(index, index + searchText.length);
@@ -195,15 +276,15 @@ const Page: React.FC = () => {
         );
       },
     },
-    ...tableColumns.filter((col: any) => !['name', 'code'].includes(col.dataIndex)),
+    ...tableColumns.filter((col: any) => !['role_name', 'code'].includes(col.dataIndex)),
     {
       title: '操作',
       dataIndex: 'option',
       valueType: 'option' as const,
       width: 120,
-      render: (_: unknown, record: MenuPermission) => {
+      render: (_: unknown, record: Role) => {
         // 虚拟节点不显示操作按钮
-        if (record.permission_id.startsWith('virtual-')) {
+        if (record.role_id.startsWith('virtual-')) {
           return null;
         }
         return [
@@ -223,16 +304,14 @@ const Page: React.FC = () => {
                   isDetailsEditable: false,
                 });
                 
-                const response = await getPermissionsPermissionId({
-                  permission_id: record.permission_id,
+                const response = await getRolesRoleId({
+                  role_id: record.role_id,
                 });
                 
                 if (response.code === 200 && response.data) {
                   const processedData = {
                     ...response.data,
-                    resource_type: 'MENU' as const,
-                    actions: response.data.actions as ('create' | 'read' | 'update' | 'delete')[],
-                  } as MenuPermission;
+                  } as Role;
                   
                   setTimeout(() => {
                     setState({
@@ -244,10 +323,10 @@ const Page: React.FC = () => {
 
                   editform.setFieldsValue(processedData);
                 } else {
-                  messageApi.error('获取权限详情失败');
+                  messageApi.error('获取角色详情失败');
                 }
               } catch (error) {
-                messageApi.error('获取权限详情失败');
+                messageApi.error('获取角色详情失败');
               } finally {
                 setLoading(false);
               }
@@ -262,15 +341,15 @@ const Page: React.FC = () => {
             onClick={() => {
               Modal.confirm({
                 title: '确认删除',
-                content: '确定要删除该权限吗？',
+                content: '确定要删除该角色吗？',
                 onOk: async () => {
                   try {
                     setDeleteLoading(true);
-                    const response = await deletePermissionsPermissionId({
-                      permission_id: record.permission_id,
+                    const response = await deleteRolesRoleId({
+                      role_id: record.role_id,
                     });
                     if (response.code && response.code >= 200 && response.code < 300) {
-                      messageApi.success('删除权限成功');
+                      messageApi.success('删除角色成功');
                       if (actionRef.current) {
                         actionRef.current.reload();
                       }
@@ -303,12 +382,14 @@ const Page: React.FC = () => {
         <ProTable
           defaultSize="small"
           actionRef={actionRef}
-          rowKey="permission_id"
+          rowKey="role_id"
           onRow={(record) => ({
-            id: `permission-row-${record.permission_id}`,
+            id: `role-row-${record.role_id}`,
             style: {
-              backgroundColor: highlightedRowId === record.permission_id && isHighlighted ? '#fffbe6' : undefined,
+              backgroundColor: record.status === 'ARCHIVED' ? '#f5f5f5' : 
+                highlightedRowId === record.role_id && isHighlighted ? '#fffbe6' : undefined,
               transition: 'background-color 0.3s',
+              opacity: record.status === 'ARCHIVED' ? 0.8 : 1,
             },
           })}
           search={false}
@@ -317,10 +398,24 @@ const Page: React.FC = () => {
               key="search"
               onSearch={handleSearch}
               onReset={handleReset}
-              placeholder="请输入权限名称"
+              placeholder="请输入角色名称"
             />
           }
           toolBarRender={() => [
+            <Radio.Group
+              key="status-filter"
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                if (actionRef.current) {
+                  actionRef.current.reload();
+                }
+              }}
+              style={{ marginRight: 16 }}
+            >
+              <Radio.Button value="ACTIVE">有效角色</Radio.Button>
+              <Radio.Button value="ALL">全部角色</Radio.Button>
+            </Radio.Group>,
             <Button
               type="primary"
               key="create"
@@ -330,7 +425,6 @@ const Page: React.FC = () => {
                 setState({
                   isCreateModalOpen: true,
                   createValue: {
-                    actions: ['read', 'create'],
                     status: 'ACTIVE',
                   },
                 });
@@ -341,41 +435,41 @@ const Page: React.FC = () => {
           ]}
           request={async () => {
             try {
-              console.log('开始请求权限数据...');
+              console.log('开始请求角色数据...');
               setLoading(true);
-              const response = await getPermissions({
-                resource_type: 'MENU',
+              const response = await getRoles({
+                status: statusFilter === 'ALL' ? undefined : statusFilter,
               });
 
               if (response.code === 200 && response.data?.items) {
-                
-                if (response.data.items.length === 0) {
+                // 转换 API 返回的数据格式，确保所有必需字段都有值
+                const roles = response.data.items.map(item => ({
+                  role_id: item.role_id || '',
+                  role_name: item.role_name || '',
+                  code: item.code || '',
+                  description: item.description,
+                  status: (item.status || 'ACTIVE') as 'ACTIVE' | 'ARCHIVED',
+                  permissions: item.permissions?.map(p => ({
+                    permission_id: p.permission_id || '',
+                    name: p.name || '',
+                    code: p.code || '',
+                  })) || [],
+                }));
+
+                if (roles.length === 0) {
                   console.log('警告: API 返回的 items 数组为空');
                 }
 
-                // 检查每个 item 的结构
-                // response.data.items.forEach((item, index) => {
-                //   console.log(`Item ${index} 结构:`, {
-                //     permission_id: item.permission_id,
-                //     name: item.name,
-                //     code: item.code,
-                //     actions: item.actions,
-                //     parent_id: item.parent_id,
-                //     resource_type: item.resource_type,
-                //     created_at: item.created_at,
-                //   });
-                // });
-
                 // 构建树形数据
-                const treeData = buildMenuTree(response.data.items);
+                const treeData = buildRoleTree(roles);
                 console.log('树形数据构建完成:', treeData);
                 
                 if (treeData.length === 0) {
                   console.log('警告: 构建的树形数据为空');
                 }
 
-                // 设置所有权限的 ID 为展开状态
-                const allIds = getAllPermissionIds(treeData);
+                // 设置所有角色的 ID 为展开状态
+                const allIds = getAllRoleIds(treeData);
                 setExpandedRowKeys(allIds);
 
                 // 处理数据，添加搜索文本
@@ -395,14 +489,14 @@ const Page: React.FC = () => {
                 hasItems: !!response.data?.items,
               });
               
-              messageApi.error(response.message || '获取菜单权限列表失败');
+              messageApi.error(response.message || '获取角色列表失败');
               return {
                 data: [],
                 success: false,
                 total: 0,
               };
             } catch (error) {
-              console.error('获取权限数据时发生错误:', error);
+              console.error('获取角色数据时发生错误:', error);
               if (error instanceof Error) {
                 console.error('错误详情:', {
                   name: error.name,
@@ -410,7 +504,7 @@ const Page: React.FC = () => {
                   stack: error.stack,
                 });
               }
-              messageApi.error('获取菜单权限列表失败');
+              messageApi.error('获取角色列表失败');
               return {
                 data: [],
                 success: false,
@@ -438,109 +532,112 @@ const Page: React.FC = () => {
           loading={loading}
         />
 
-        {/* 权限详情 */}
-        <Drawer
-          key={`${detailsValue?.permission_id || ''}-${isDetailsViewOpen}`}
-          width={800}
-          forceRender={true}
-          open={isDetailsViewOpen}
-          destroyOnHidden={true}
-          onClose={() => {
-            setState({ 
-              isDetailsViewOpen: false,
-              isDetailsEditable: false,
-              detailsValue: {},
-            });
-          }}
-          title={"权限详情 " + (detailsValue?.name || '')}
-          extra={
-            <Space>
-              {isDetailsEditable ? (
-                <>
-                  <Button
-                    type="primary"
-                    icon={<SaveOutlined />}
-                    loading={saving}
-                    onClick={() => {
-                      editform.submit();
-                    }}
-                  >
-                    保存
-                  </Button>
-                  <Button
-                    icon={<CloseOutlined />}
-                    onClick={() => {
-                      setState({ isDetailsEditable: false });
-                    }}
-                  >
-                    取消
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    type="primary"
-                    icon={<EditOutlined />}
-                    onClick={() => {
-                      setState({ isDetailsEditable: true });
-                    }}
-                  >
-                    编辑
-                  </Button>
-                  <Button
-                    danger
-                    ghost
-                    icon={<DeleteOutlined />}
-                    loading={deleteLoading}
-                    onClick={() => {
-                      if (!detailsValue?.permission_id) return;
-                      Modal.confirm({
-                        title: '确认删除',
-                        content: '确定要删除该权限吗？',
-                        onOk: async () => {
-                          try {
-                            setDeleteLoading(true);
-                            const response = await deletePermissionsPermissionId({
-                              permission_id: detailsValue.permission_id,
-                            });
-                            if (response.code && response.code >= 200 && response.code < 300) {
-                              messageApi.success('删除成功');
-                              setState({ 
-                                isDetailsViewOpen: false,
-                                detailsValue: {},
-                                isDetailsEditable: false,
+        {/* 角色详情 */}
+        {detailsValue?.role_id && (
+          <Drawer
+            key={`${detailsValue.role_id}-${isDetailsViewOpen}`}
+            width={800}
+            forceRender={true}
+            open={isDetailsViewOpen}
+            destroyOnHidden={true}
+            onClose={() => {
+              setState({ 
+                isDetailsViewOpen: false,
+                isDetailsEditable: false,
+                detailsValue: {},
+              });
+            }}
+            title={"角色详情 " + (detailsValue?.role_name || '')}
+            extra={
+              <Space>
+                {isDetailsEditable ? (
+                  <>
+                    <Button
+                      type="primary"
+                      icon={<SaveOutlined />}
+                      loading={saving}
+                      onClick={() => {
+                        editform.submit();
+                      }}
+                    >
+                      保存
+                    </Button>
+                    <Button
+                      icon={<CloseOutlined />}
+                      onClick={() => {
+                        setState({ isDetailsEditable: false });
+                      }}
+                    >
+                      取消
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      type="primary"
+                      icon={<EditOutlined />}
+                      onClick={() => {
+                        setState({ isDetailsEditable: true });
+                      }}
+                    >
+                      编辑
+                    </Button>
+                    <Button
+                      danger
+                      ghost
+                      icon={<DeleteOutlined />}
+                      loading={deleteLoading}
+                      onClick={() => {
+                        if (!detailsValue?.role_id) return;
+                        Modal.confirm({
+                          title: '确认删除',
+                          content: '确定要删除该角色吗？',
+                          onOk: async () => {
+                            try {
+                              setDeleteLoading(true);
+                              const response = await deleteRolesRoleId({
+                                role_id: detailsValue.role_id,
                               });
-                              if (actionRef.current) {
-                                actionRef.current.reload();
+                              if (response.code && response.code >= 200 && response.code < 300) {
+                                messageApi.success('删除成功');
+                                setState({ 
+                                  isDetailsViewOpen: false,
+                                  detailsValue: {},
+                                  isDetailsEditable: false,
+                                });
+                                if (actionRef.current) {
+                                  actionRef.current.reload();
+                                }
+                              } else {
+                                messageApi.error(response.message || '删除失败');
                               }
-                            } else {
-                              messageApi.error(response.message || '删除失败');
+                            } catch (error) {
+                              messageApi.error('删除失败');
+                            } finally {
+                              setDeleteLoading(false);
                             }
-                          } catch (error) {
-                            messageApi.error('删除失败');
-                          } finally {
-                            setDeleteLoading(false);
-                          }
-                        },
-                      });
-                    }}
-                  >
-                    删除
-                  </Button>
-                </>
-              )}
-            </Space>
-          }
-        >
-          <Spin spinning={loading}>
-            {detailsValue?.permission_id && (
+                          },
+                        });
+                      }}
+                    >
+                      删除
+                    </Button>
+                  </>
+                )}
+              </Space>
+            }
+          >
+            <Spin spinning={loading}>
               <BetaSchemaForm
-                key={`form-${detailsValue.permission_id}`}
+                key={`form-${detailsValue.role_id}`}
                 layoutType="Form"
                 columns={isDetailsEditable ? formFields : detailFields}
                 readonly={!isDetailsEditable}
-                title={detailsValue.name}
-                initialValues={detailsValue}
+                title={detailsValue.role_name}
+                initialValues={{
+                  ...detailsValue,
+                  permissions: detailsValue.permissions?.map(p => p.permission_id),
+                }}
                 grid={true}
                 rowProps={{
                   gutter: [16, 16],
@@ -552,13 +649,13 @@ const Page: React.FC = () => {
                 submitter={false}
                 form={editform}
               />
-            )}
-          </Spin>
-        </Drawer>
+            </Spin>
+          </Drawer>
+        )}
 
-        {/* 新建权限 */}
+        {/* 新建角色 */}
         <Modal
-          title="新建权限"
+          title="新建角色"
           open={isCreateModalOpen}
           onCancel={() => {
             setState({ 
@@ -592,20 +689,18 @@ const Page: React.FC = () => {
               try {
                 setCreateLoading(true);
                 console.log('提交的表单数据:', values);
-                const response = await postPermissions({
-                  name: values.name,
+                const response = await postRoles({
+                  role_name: values.role_name,
                   code: values.code,
                   description: values.description,
-                  resource_type: 'MENU',
-                  actions: values.actions,
+                  status: values.status,
                 });
                 
                 console.log('提交到 API 的数据:', {
-                  name: values.name,
+                  role_name: values.role_name,
                   code: values.code,
                   description: values.description,
-                  resource_type: 'MENU',
-                  actions: values.actions,
+                  status: values.status,
                 });
                 
                 if (response.code && response.code >= 200 && response.code < 300) {
@@ -616,7 +711,7 @@ const Page: React.FC = () => {
                   });
                   if (actionRef.current) {
                     // 设置要高亮的行 ID
-                    setHighlightedRowId(response.data?.permission_id || null);
+                    setHighlightedRowId(response.data?.role_id || null);
                     setIsHighlighted(true);
                     // 重新加载表格
                     actionRef.current.reload();
