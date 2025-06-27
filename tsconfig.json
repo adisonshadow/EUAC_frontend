@@ -17,7 +17,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@@/*": ["./src/.umi/*"] // Umi自己用的，不要动
-    }
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["./**/*.d.ts", "./**/*.ts", "./**/*.tsx"]
+  "include": ["./**/*.d.ts", "./**/*.ts", "./**/*.tsx", "./**/*.scss"]
 }

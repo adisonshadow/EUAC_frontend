@@ -1,4 +1,4 @@
-import { Form, Input, Button, Space } from 'antd';
+import { Form, Input, Button, Space } from '@oceanbase/design';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 import React from 'react';
 
@@ -47,6 +47,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
       <Space>
         <Button
           type="primary"
+          ghost
           icon={<SearchOutlined />}
           onClick={handleSearch}
         >

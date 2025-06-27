@@ -1,10 +1,50 @@
 declare namespace API {
+  type APIConnectConfig = {
+    /** 应用API私钥（由服务端根据 application_id 和 salt 生成） */
+    app_secret?: string;
+    /** 签名盐值 */
+    salt: string;
+  };
+
+  type APIDataScope = true;
+
+  type Application = {
+    /** 应用ID */
+    application_id?: string;
+    /** 应用名称 */
+    name?: string;
+    /** 应用编码 */
+    code?: string;
+    /** 应用状态 */
+    status?: 'ACTIVE' | 'DISABLED';
+    /** 是否启用SSO */
+    sso_enabled?: boolean;
+    sso_config?: SSOConfig;
+    /** 是否启用API服务 */
+    api_enabled?: boolean;
+    api_connect_config?: APIConnectConfig;
+    api_data_scope?: APIDataScope;
+    /** 应用描述 */
+    description?: string;
+    /** 创建时间 */
+    created_at?: string;
+    /** 更新时间 */
+    updated_at?: string;
+    /** 删除时间 */
+    deleted_at?: string;
+  };
+
   type Captcha = {
     captcha_id?: string;
     target_position?: { x?: number; y?: number };
     image?: string;
     created_at?: string;
     expires_at?: string;
+  };
+
+  type deleteApplicationsIdParams = {
+    /** 应用ID */
+    id: string;
   };
 
   type deleteDepartmentsDepartmentIdParams = {
@@ -42,7 +82,7 @@ declare namespace API {
     /** 父部门ID */
     parent_id?: string;
     /** 部门状态 */
-    status?: 'ACTIVE' | 'INACTIVE';
+    status?: 'ACTIVE' | 'DISABLED';
     /** 部门描述 */
     description?: string;
     /** 创建时间 */
@@ -69,7 +109,7 @@ declare namespace API {
     /** 父部门ID */
     parent_id?: string;
     /** 部门状态 */
-    status?: 'ACTIVE' | 'INACTIVE';
+    status?: 'ACTIVE' | 'DISABLED';
     /** 创建时间 */
     created_at?: string;
     /** 更新时间 */
@@ -95,6 +135,44 @@ declare namespace API {
     updated_at?: string;
   };
 
+  type getApplicationsIdParams = {
+    /** 应用ID */
+    id: string;
+  };
+
+  type getApplicationsParams = {
+    /** 页码（当 size 不为 -1 时有效） */
+    page?: number;
+    /** 每页数量，设置为 -1 时返回所有记录不分页 */
+    size?: number;
+    /** 应用名称（支持模糊匹配） */
+    name?: string;
+    /** 应用编码（支持模糊匹配） */
+    code?: string;
+    /** 应用状态 */
+    status?: 'ACTIVE' | 'DISABLED';
+  };
+
+  type getApplicationsSsoIdParams = {
+    /** 应用ID */
+    id: string;
+  };
+
+  type getAuthCheckParams = {
+    /** 应用ID，用于SSO模式下的token验证
+
+**使用场景**：
+- 第三方系统需要验证特定应用的token
+- 使用应用特定的salt进行JWT验证
+
+**注意事项**：
+- 应用必须已启用SSO功能
+- 应用必须配置有效的salt
+- 不传此参数时使用默认JWT密钥验证
+ */
+    app?: string;
+  };
+
   type getDepartmentsDepartmentIdParams = {
     /** 部门ID */
     department_id: string;
@@ -108,14 +186,16 @@ declare namespace API {
   };
 
   type getDepartmentsParams = {
-    /** 页码 */
+    /** 页码（当 size 不为 -1 时有效） */
     page?: number;
-    /** 每页数量 */
+    /** 每页数量，设置为 -1 时返回所有记录不分页 */
     size?: number;
-    /** 部门名称（模糊搜索） */
+    /** 部门名称（支持模糊匹配） */
     name?: string;
+    /** 部门编码（支持模糊匹配） */
+    code?: string;
     /** 部门状态 */
-    status?: 'ACTIVE' | 'INACTIVE';
+    status?: 'ACTIVE' | 'DISABLED';
   };
 
   type getPermissionsCheckParams = {
@@ -128,14 +208,18 @@ declare namespace API {
   };
 
   type getPermissionsParams = {
-    /** 页码 */
+    /** 页码（当 size 不为 -1 时有效） */
     page?: number;
-    /** 每页数量 */
-    limit?: number;
-    /** 搜索关键词 */
-    search?: string;
-    /** 资源类型 */
-    resource_type?: 'MENU' | 'BUTTON' | 'API';
+    /** 每页数量，设置为 -1 时返回所有记录不分页 */
+    size?: number;
+    /** 权限名称（支持模糊匹配） */
+    name?: string;
+    /** 权限编码（支持模糊匹配） */
+    code?: string;
+    /** 权限类型 */
+    type?: 'MENU' | 'BUTTON' | 'API';
+    /** 权限状态 */
+    status?: 'ACTIVE' | 'DISABLED';
   };
 
   type getPermissionsPermissionIdParams = {
@@ -154,12 +238,16 @@ declare namespace API {
   };
 
   type getRolesParams = {
-    /** 页码 */
-    page?: any;
-    /** 每页数量 */
-    size?: any;
+    /** 页码（当 size 不为 -1 时有效） */
+    page?: number;
+    /** 每页数量，设置为 -1 时返回所有记录不分页 */
+    size?: number;
+    /** 角色名称（支持模糊匹配） */
+    name?: string;
+    /** 角色编码（支持模糊匹配） */
+    code?: string;
     /** 角色状态 */
-    status?: any;
+    status?: 'ACTIVE' | 'DISABLED';
   };
 
   type getRolesRoleIdParams = {
@@ -199,7 +287,7 @@ declare namespace API {
     /** 电话（支持模糊匹配） */
     phone?: string;
     /** 用户状态 */
-    status?: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
     /** 性别 */
     gender?: 'MALE' | 'FEMALE' | 'OTHER';
     /** 部门ID */
@@ -238,6 +326,11 @@ declare namespace API {
     deleted_at?: string;
   };
 
+  type postApplicationsIdGenerateSecretParams = {
+    /** 应用ID */
+    id: string;
+  };
+
   type postPermissionsPermissionIdRolesParams = {
     /** 权限ID */
     permission_id: any;
@@ -258,9 +351,19 @@ declare namespace API {
     user_id: any;
   };
 
+  type postUsersUserIdChangePasswordParams = {
+    /** 用户ID */
+    user_id: string;
+  };
+
   type postUsersUserIdRestoreParams = {
     /** 用户ID */
     user_id: any;
+  };
+
+  type putApplicationsIdParams = {
+    /** 应用ID */
+    id: string;
   };
 
   type putDepartmentsDepartmentIdParams = {
@@ -308,7 +411,7 @@ declare namespace API {
     /** 角色描述 */
     description?: string;
     /** 角色状态 */
-    status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
     /** 创建时间 */
     created_at?: string;
     /** 更新时间 */
@@ -344,6 +447,21 @@ declare namespace API {
     data?: Role;
   };
 
+  type SSOConfig = {
+    /** SSO使用的协议 */
+    protocol: 'SAML' | 'CAS' | 'OIDC' | 'OAuth';
+    /** SSO回调地址 */
+    redirect_uri: string;
+    /** SSO签名盐值，用于JWT签名 */
+    salt: string;
+    /** 基于currenttime、salt，使用 bcrypt 生成的Hash值 */
+    secret?: string;
+    /** 当前时间戳， 用于生成secret */
+    currentTimestample?: number;
+    /** 其他SSO协议特定的参数 */
+    additional_params?: Record<string, any>;
+  };
+
   type User = {
     /** 用户ID */
     user_id?: string;
@@ -354,7 +472,7 @@ declare namespace API {
     /** 电话 */
     phone?: string;
     /** 用户状态 */
-    status?: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
     /** 创建时间 */
     created_at?: string;
     /** 更新时间 */

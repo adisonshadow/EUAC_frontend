@@ -98,7 +98,7 @@ export async function putUsersUserId(
     /** 部门ID */
     department_id?: string;
     /** 用户状态 */
-    status?: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
+    status?: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
   },
   options?: { [key: string]: any },
 ) {
@@ -174,6 +174,33 @@ export async function postUsersUserIdAvatar(
   });
 }
 
+/** 修改密码 用户通过旧密码修改为新密码 POST /api/v1/users/${param0}/change-password */
+export async function postUsersUserIdChangePassword(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.postUsersUserIdChangePasswordParams,
+  body: {
+    /** 旧密码 */
+    old_password: string;
+    /** 新密码 */
+    new_password: string;
+  },
+  options?: { [key: string]: any },
+) {
+  const { user_id: param0, ...queryParams } = params;
+  return request<{ code?: number; message?: string; data?: any }>(
+    `/api/v1/users/${param0}/change-password`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    },
+  );
+}
+
 /** 恢复已删除用户 恢复被软删除的用户 POST /api/v1/users/${param0}/restore */
 export async function postUsersUserIdRestore(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -220,7 +247,7 @@ export async function putUsersUserIdStatus(
   params: API.putUsersUserIdStatusParams,
   body: {
     /** 用户状态 */
-    status: 'ACTIVE' | 'INACTIVE' | 'LOCKED';
+    status: 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
   },
   options?: { [key: string]: any },
 ) {
@@ -234,6 +261,29 @@ export async function putUsersUserIdStatus(
     data: body,
     ...(options || {}),
   });
+}
+
+/** 请求重置密码 通过用户名和邮箱请求重置密码，系统会发送重置令牌到邮箱 POST /api/v1/users/request-password-reset */
+export async function postUsersRequestPasswordReset(
+  body: {
+    /** 用户名 */
+    username: string;
+    /** 邮箱 */
+    email: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<{ code?: number; message?: string; data?: any }>(
+    '/api/v1/users/request-password-reset',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: body,
+      ...(options || {}),
+    },
+  );
 }
 
 /** 重置密码 重置用户密码 POST /api/v1/users/reset-password */
@@ -254,4 +304,29 @@ export async function postUsersResetPassword(
     data: body,
     ...(options || {}),
   });
+}
+
+/** 使用令牌重置密码 使用重置令牌重置密码 POST /api/v1/users/reset-password-with-token */
+export async function postUsersResetPasswordWithToken(
+  body: {
+    /** 用户名 */
+    username: string;
+    /** 重置令牌（8位） */
+    token: string;
+    /** 新密码 */
+    new_password: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<{ code?: number; message?: string; data?: any }>(
+    '/api/v1/users/reset-password-with-token',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: body,
+      ...(options || {}),
+    },
+  );
 }

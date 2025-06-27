@@ -1,6 +1,6 @@
 # README
 
-## 安装
+## UAC(User Authorization Control) Frontend 
 
 1. 目录权限
 
@@ -49,7 +49,3 @@ yarn install --production --offline
  git push -u origin main
 
 ```
-
-
-access、create、update、delete
-View、Create、Approve、Export、Config、audit、disable

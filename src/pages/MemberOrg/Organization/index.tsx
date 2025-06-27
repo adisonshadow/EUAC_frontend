@@ -11,9 +11,9 @@ import {
   BetaSchemaForm,
   PageContainer,
   ProTable,
-} from "@ant-design/pro-components";
+} from "@oceanbase/ui";
 import { useSetState } from "ahooks";
-import { Button, Drawer, Modal, Spin, Space, message, Form } from "antd";
+import { Button, Drawer, Modal, Spin, Space, message, Form } from "@oceanbase/design";
 import React, { useRef, useState, useEffect } from "react";
 import { tableColumns, departmentDetailFormColumns, departmentEditFormColumns } from "./Schemas";
 import { getDepartmentsTree, postDepartments, putDepartmentsDepartmentId, deleteDepartmentsDepartmentId, getDepartmentsDepartmentId } from "@/services/UAC/api/departments";

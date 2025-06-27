@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tooltip, message } from 'antd';
+import { Tooltip, message } from '@oceanbase/design';
 import { CopyOutlined } from '@ant-design/icons';
 
 interface UUIDDisplayProps {

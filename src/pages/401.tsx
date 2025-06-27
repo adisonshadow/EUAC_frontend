@@ -1,5 +1,5 @@
 import { history } from '@umijs/max';
-import { Button, Result } from 'antd';
+import { Button, Result } from '@oceanbase/design';
 import React from 'react';
 
 const NoFoundPage: React.FC = () => (

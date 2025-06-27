@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取权限列表 获取权限列表，支持分页和筛选 GET /api/v1/permissions */
+/** 获取权限列表 获取权限列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/permissions */
 export async function getPermissions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getPermissionsParams,
@@ -14,25 +14,16 @@ export async function getPermissions(
     data?: {
       total?: number;
       page?: number;
-      limit?: number;
-      items?: {
-        permission_id?: string;
-        name?: string;
-        code?: string;
-        description?: string;
-        resource_type?: string;
-        actions?: string[];
-        parent_id?: string;
-        created_at?: string;
-      }[];
+      size?: number;
+      items?: API.Permission[];
     };
   }>('/api/v1/permissions', {
     method: 'GET',
     params: {
       // page has a default value: 1
       page: '1',
-      // limit has a default value: 10
-      limit: '10',
+      // size has a default value: 10
+      size: '10',
 
       ...params,
     },
@@ -43,8 +34,6 @@ export async function getPermissions(
 /** 创建权限 创建新的权限 POST /api/v1/permissions */
 export async function postPermissions(
   body: {
-    /** 权限名称 */
-    name: string;
     /** 权限编码 */
     code: string;
     /** 权限描述 */
@@ -53,8 +42,6 @@ export async function postPermissions(
     resource_type: 'MENU' | 'BUTTON' | 'API';
     /** 操作类型列表 */
     actions: ('create' | 'read' | 'update' | 'delete')[];
-    /** 父权限ID */
-    parent_id?: string;
   },
   options?: { [key: string]: any },
 ) {
@@ -63,12 +50,10 @@ export async function postPermissions(
     message?: string;
     data?: {
       permission_id?: string;
-      name?: string;
       code?: string;
       description?: string;
       resource_type?: string;
       actions?: string[];
-      parent_id?: string;
       created_at?: string;
     };
   }>('/api/v1/permissions', {
@@ -93,12 +78,10 @@ export async function getPermissionsPermissionId(
     message?: string;
     data?: {
       permission_id?: string;
-      name?: string;
       code?: string;
       description?: string;
       resource_type?: string;
       actions?: string[];
-      parent_id?: string;
       created_at?: string;
       updated_at?: string;
     };
@@ -114,16 +97,12 @@ export async function putPermissionsPermissionId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putPermissionsPermissionIdParams,
   body: {
-    /** 权限名称 */
-    name?: string;
     /** 权限描述 */
     description?: string;
     /** 资源类型 */
     resource_type?: 'MENU' | 'BUTTON' | 'API';
     /** 操作类型列表 */
     actions?: ('create' | 'read' | 'update' | 'delete')[];
-    /** 父权限ID */
-    parent_id?: string;
   },
   options?: { [key: string]: any },
 ) {
@@ -133,12 +112,11 @@ export async function putPermissionsPermissionId(
     message?: string;
     data?: {
       permission_id?: string;
-      name?: string;
       code?: string;
       description?: string;
       resource_type?: string;
       actions?: string[];
-      parent_id?: string;
+      created_at?: string;
     };
   }>(`/api/v1/permissions/${param0}`, {
     method: 'PUT',

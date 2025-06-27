@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { Upload, Image, message } from 'antd';
-import type { GetProp, UploadFile, UploadProps } from 'antd';
+import React, { useState, useRef, useEffect } from 'react';
+import { Upload, Image, message } from '@oceanbase/design';
+import type { GetProp, UploadFile, UploadProps } from '@oceanbase/design';
 import ImgCrop from 'antd-img-crop';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
 import { postUploadsImage } from '@/services/UAC/api/uploads';
@@ -14,16 +14,23 @@ interface AvatarUploadProps {
 
 const AvatarUpload: React.FC<AvatarUploadProps> = ({ value, onChange, disabled }) => {
   const [loading, setLoading] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>(
-    value ? [
-      {
-        uid: '-1',
-        name: 'avatar',
-        status: 'done',
-        url: getImageUrl(value),
-      },
-    ] : []
-  );
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  // 监听 value 的变化，更新 fileList
+  useEffect(() => {
+    if (value) {
+      setFileList([
+        {
+          uid: '-1',
+          name: 'avatar',
+          status: 'done',
+          url: getImageUrl(value),
+        },
+      ]);
+    } else {
+      setFileList([]);
+    }
+  }, [value]);
 
   const imageRef = useRef<HTMLDivElement>(null);
 

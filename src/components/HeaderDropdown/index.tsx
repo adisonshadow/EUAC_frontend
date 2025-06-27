@@ -1,5 +1,5 @@
-import { Dropdown } from 'antd';
-import type { DropDownProps } from 'antd/es/dropdown';
+import { Dropdown } from '@oceanbase/design';
+import type { DropDownProps } from '@oceanbase/design/es/dropdown';
 import React from 'react';
 import { createStyles } from 'antd-style';
 import classNames from 'classnames';

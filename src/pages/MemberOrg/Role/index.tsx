@@ -4,8 +4,8 @@ import {
   PageContainer,
   ProTable,
   type ProColumns,
-} from "@ant-design/pro-components";
-import { Button, message, Space, Modal, Drawer, Spin, Radio, Typography } from "antd";
+} from "@oceanbase/ui";
+import { Button, message, Space, Modal, Drawer, Spin, Radio, Typography } from "@oceanbase/design";
 import { EyeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
 import React, { useRef, useState, useEffect } from "react";
 import { 
@@ -23,7 +23,7 @@ import { buildRoleTree } from "./utils";
 import type { Role } from "./types";
 import { useSetState } from "ahooks";
 import SearchForm from '@/components/SearchForm';
-import { Form } from 'antd';
+import { Form } from '@oceanbase/design';
 
 const Page: React.FC = () => {
   const actionRef = useRef<ActionType>();
@@ -108,7 +108,7 @@ const Page: React.FC = () => {
     try {
       const response = await getPermissions({});
       if (response.code === 200 && response.data?.items) {
-        return response.data.items.map(item => ({
+        return response.data.items.map((item:any) => ({
           label: item.name,
           value: item.permission_id,
         }));
@@ -252,20 +252,43 @@ const Page: React.FC = () => {
           return text;
         }
 
+        // 获取当前节点的层级
+        const getNodeLevel = (node: Role): number => {
+          let level = 0;
+          let current = node;
+          while (current.code.includes(':')) {
+            level++;
+            current = {
+              ...current,
+              code: current.code.substring(0, current.code.lastIndexOf(':')),
+            };
+          }
+          return level;
+        };
+
+        // 获取当前层级对应的编码部分
+        const getCurrentLevelCode = (code: string, level: number): string => {
+          const parts = code.split(':');
+          return parts[level] || code;
+        };
+
+        const nodeLevel = getNodeLevel(record);
+        const displayCode = getCurrentLevelCode(text, nodeLevel);
+
         // 如果是禁用状态，添加删除线
         const content = record.status === 'ARCHIVED' ? (
-          <Typography.Text delete>{text}</Typography.Text>
-        ) : text;
+          <Typography.Text delete>{displayCode}</Typography.Text>
+        ) : displayCode;
 
         // 如果有搜索文本，添加高亮
         if (!searchText) return content;
         
-        const index = text.toLowerCase().indexOf(searchText.toLowerCase());
+        const index = displayCode.toLowerCase().indexOf(searchText.toLowerCase());
         if (index === -1) return content;
         
-        const beforeStr = text.substring(0, index);
-        const matchStr = text.substring(index, index + searchText.length);
-        const afterStr = text.substring(index + searchText.length);
+        const beforeStr = displayCode.substring(0, index);
+        const matchStr = displayCode.substring(index, index + searchText.length);
+        const afterStr = displayCode.substring(index + searchText.length);
         
         return (
           <span>

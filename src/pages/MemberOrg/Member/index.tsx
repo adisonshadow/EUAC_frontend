@@ -3,7 +3,6 @@ import {
   EditOutlined,
   EyeOutlined,
   PlusOutlined,
-  RedoOutlined,
   SaveOutlined,
   CloseOutlined,
   CopyOutlined,
@@ -13,9 +12,9 @@ import {
   BetaSchemaForm,
   PageContainer,
   ProTable,
-} from "@ant-design/pro-components";
+} from "@oceanbase/ui";
 import { useSetState } from "ahooks";
-import { Button, Drawer, Modal, Spin, Space, message, Form, Input } from "antd";
+import { Button, Drawer, Modal, Spin, Space, message, Form, Input } from "@oceanbase/design";
 import React, { useRef, useState } from "react";
 import { history, useLocation, useModel } from '@umijs/max';
 import { tableColumns, userDetailFormColumns, userEditFormColumns, useDepartmentOptions } from "./Schemas";
@@ -264,6 +263,7 @@ const Page: React.FC = () => {
       >
         <ProTable
           defaultSize="small"
+          headerTitle="成员列表"
           actionRef={actionRef}
           rowKey="user_id"
           search={{
@@ -304,7 +304,7 @@ const Page: React.FC = () => {
             //   批量导入
             // </Button>,
           ]}
-          request={async (params) => {
+          request={async (params:any) => {
             try {
               // 更新 URL 参数
               const newQuery = new URLSearchParams(location.search);

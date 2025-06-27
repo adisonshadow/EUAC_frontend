@@ -1,11 +1,12 @@
 import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
-import { Spin } from 'antd';
+import { Spin, Avatar } from '@oceanbase/design';
 import type { MenuInfo } from 'rc-menu/lib/interface';
 import React, { useCallback } from 'react';
 import { flushSync } from 'react-dom';
 import HeaderDropdown from '../HeaderDropdown';
 import api from '@/services/UAC/api';
+import { getImageUrl } from '@/utils/image';
 
 export type GlobalHeaderRightProps = {
   menu?: boolean;
@@ -51,7 +52,10 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
         loginOut();
         return;
       }
-      history.push(`/account/${key}`);
+      if (key === 'center') {
+        history.push('/account/center');
+        return;
+      }
     },
     [setInitialState],
   );
@@ -117,7 +121,18 @@ export const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu, childre
         items: menuItems,
       }}
     >
-      {children}
+      <span className="anticon">
+        {children || (
+          <span style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Avatar
+              src={currentUser?.avatar ? getImageUrl(currentUser.avatar) : undefined}
+              icon={<UserOutlined />}
+              style={{ marginRight: 8 }}
+            />
+            <span>{currentUser?.name || currentUser?.username}</span>
+          </span>
+        )}
+      </span>
     </HeaderDropdown>
   );
 };

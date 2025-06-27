@@ -14,11 +14,12 @@
   },
   "dependencies": {
     "@ant-design/icons": "^5.0.1",
-    "@ant-design/pro-components": "^2.8.7",
     "@ant-design/use-emotion-css": "^1.0.4",
+    "@oceanbase/design": "^0.4.10",
+    "@oceanbase/ui": "^0.4.13",
     "@umijs/max": "^4.4.10",
+    "@umijs/route-utils": "^4.0.1",
     "ahooks": "^3.8.5",
-    "antd": "^5.25.1",
     "antd-img-crop": "^4.25.0",
     "antd-style": "^3.7.1",
     "axios": "^1.9.0",
@@ -39,6 +40,7 @@
     "prettier": "^2.8.7",
     "prettier-plugin-organize-imports": "^3.2.2",
     "prettier-plugin-packagejson": "^2.4.3",
+    "sass": "^1.89.1",
     "tsconfig-paths-webpack-plugin": "^4.2.0",
     "typescript": "^5.0.3"
   }

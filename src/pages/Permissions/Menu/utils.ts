@@ -1,4 +1,5 @@
-import type { MenuPermission, PermissionResponse } from "./types";
+import type { MenuPermission, PermissionResponse, ActionType } from "./types";
+import { ACTION_KEYS } from "@/enums";
 
 // 将 API 返回的数据转换为 MenuPermission 类型
 export const convertToMenuPermission = (item: PermissionResponse): MenuPermission => {
@@ -6,12 +7,13 @@ export const convertToMenuPermission = (item: PermissionResponse): MenuPermissio
   
   const menuPermission: MenuPermission = {
     permission_id: item.permission_id || '',
-    name: item.name || '',
     code: item.code || '',
     description: item.description,
     resource_type: 'MENU',
-    actions: item.actions || [],
-    status: item.status || 'INACTIVE',
+    actions: (item.actions || []).filter((action): action is ActionType => 
+      ACTION_KEYS.includes(action as ActionType)
+    ),
+    status: item.status || 'DISABLED',
     created_at: item.created_at || '',
     updated_at: item.updated_at || '',
   };
@@ -50,7 +52,7 @@ export const buildMenuTree = (permissions: PermissionResponse[]): MenuPermission
     
     // 创建当前节点
     map.set(node.code, { ...node, children: [] });
-    console.log(`创建节点 ${index}:`, { code: node.code, name: node.name });
+    console.log(`创建节点 ${index}:`, { code: node.code });
 
     // 记录根节点
     if (parts.length === 1) {
@@ -65,7 +67,6 @@ export const buildMenuTree = (permissions: PermissionResponse[]): MenuPermission
           // 创建中间节点
           const parentNode: MenuPermission = {
             permission_id: `virtual-${parentCode}`,
-            name: parts[i - 1],
             code: parentCode,
             description: `虚拟节点 ${parentCode}`,
             resource_type: 'MENU',
@@ -76,7 +77,7 @@ export const buildMenuTree = (permissions: PermissionResponse[]): MenuPermission
             children: [],
           };
           map.set(parentCode, parentNode);
-          console.log(`创建中间节点:`, { code: parentCode, name: parts[i - 1] });
+          console.log(`创建中间节点:`, { code: parentCode });
 
           // 如果是第一级中间节点，也记录为根节点
           if (i === 1) {
@@ -168,7 +169,7 @@ export const buildMenuTree = (permissions: PermissionResponse[]): MenuPermission
   // 打印每个节点的层级关系
   const printTree = (nodes: MenuPermission[], level = 0) => {
     nodes.forEach(node => {
-      console.log('  '.repeat(level) + `- ${node.code} (${node.name})${node.permission_id.startsWith('virtual-') ? ' [虚拟节点]' : ''}`);
+      console.log('  '.repeat(level) + `- ${node.code} (${node.permission_id.startsWith('virtual-') ? ' [虚拟节点]' : ''}`);
       if (node.children && node.children.length > 0) {
         printTree(node.children, level + 1);
       }

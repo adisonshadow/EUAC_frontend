@@ -1,15 +1,30 @@
 // https://umijs.org/config/
 import { defineConfig } from '@umijs/max';
+import { history } from '@umijs/max';
 import defaultSettings from './defaultSettings';
 import routes from './routes';
+import { NO_TOKEN_APIS, AUTH_HEADER, AUTH_PREFIX, AUTH_PAGES } from '@/constants/auth';
 
 export default defineConfig({
+  // 启用请求配置
+  request: {
+    dataField: 'data',
+  },
   /**
    * @name 开启 hash 模式
    * @description 让 build 之后的产物包含 hash 后缀。通常用于增量发布和避免浏览器加载缓存。
    * @doc https://umijs.org/docs/api/config#hash
    */
-  hash: true,
+  hash: false,
+
+  /**
+   * @name history 配置
+   * @description 配置 history 类型和基础路径
+   * @doc https://umijs.org/docs/api/config#history
+   */
+  history: {
+    type: 'browser',
+  },
 
   /**
    * @name 兼容性设置
@@ -80,9 +95,9 @@ export default defineConfig({
    * @name layout 插件
    * @doc https://umijs.org/docs/max/layout-menu
    */
-  // title: '',
   layout: {
     locale: true,
+    title: 'UAC Admin',
     ...defaultSettings,
   },
   /**
@@ -112,12 +127,6 @@ export default defineConfig({
    */
   antd: {},
   /**
-   * @name 网络请求配置
-   * @description 它基于 axios 和 ahooks 的 useRequest 提供了一套统一的网络请求和错误处理方案。
-   * @doc https://umijs.org/docs/max/request
-   */
-  request: {},
-  /**
    * @name 代理配置
    * @description 可以让你的本地服务器代理到你的服务器上，这样你就可以访问服务器的数据了
    * @see 要注意以下 代理只能在本地开发时使用，build 之后就无法使用了。
@@ -143,8 +152,21 @@ export default defineConfig({
    * @description 配置 <head> 中额外的 script
    */
   headScripts: [
-    // 解决首次加载时白屏的问题
-    { src: '/scripts/loading.js', async: true },
+    {
+      content: `
+        window.__CSP__ = {
+          'default-src': ["'self'"],
+          'script-src': ["'self'", "'unsafe-eval'", "'unsafe-inline'"],
+          'style-src': ["'self'", "'unsafe-inline'"],
+          'img-src': ["'self'", 'data:', 'https:'],
+          'connect-src': ["'self'", 'https:'],
+          'font-src': ["'self'", 'data:'],
+          'object-src': ["'none'"],
+          'media-src': ["'self'"],
+          'frame-src': ["'self'"],
+        };
+      `,
+    },
   ],
   mfsu: {
     strategy: 'normal',

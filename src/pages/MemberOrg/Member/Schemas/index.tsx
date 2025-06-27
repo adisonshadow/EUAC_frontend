@@ -1,14 +1,14 @@
-import { ProFormColumnsType } from "@ant-design/pro-components";
+import { ProFormColumnsType } from "@oceanbase/ui";
 import DepartmentPath from '@/components/DepartmentPath';
 import UUIDDisplay from "@/components/UUIDDisplay";
 import AvatarUpload from "@/components/AvatarUpload";
-import { Image } from "antd";
+import { Image } from "@oceanbase/design";
 import { getImageUrl } from '@/utils/image';
 import { useModel } from '@umijs/max';
 import { statusEnum, genderEnum } from '@/enums';
 import type { MixedFieldType } from "@/types/schema";
 
-// 字段定义
+// 1、 所有字段定义
 export const fieldDefinitions: MixedFieldType[] = [
   {
     title: "用户ID",
@@ -157,7 +157,7 @@ export const useDepartmentOptions = () => {
   return initialState?.departmentsTreeData || [];
 };
 
-// 表格列配置
+// 2、 从所有字段定义中，过滤出需要显示在表格中的字段
 export const tableColumns = fieldDefinitions
   .filter(field => field.ifShowInTable)
   .map(field => {
@@ -209,7 +209,7 @@ export const tableColumns = fieldDefinitions
     };
   });
 
-// 用户详情表单配置
+// 3、 从所有字段定义中，过滤出需要显示在详情表单中的字段
 export const userDetailFormColumns = fieldDefinitions
   .filter(field => field.ifShowInDetail)
   .map(field => {

@@ -21,15 +21,20 @@ export default [
     routes: [
       {
         name: 'login',
-        path: '/auth/login',
+        path: 'login',
         component: './Auth',
+      },
+      {
+        name: 'reset-password',
+        path: 'reset-password',
+        component: './ResetPSWD',
       },
     ],
   },
   {
     path: '/member_org',
     name: '成员与组织管理',
-    icon: 'buildOutlined',
+    icon: 'TeamOutlined',
     routes: [
       {
         path: '/member_org',
@@ -59,8 +64,8 @@ export default [
   },
   {
     path: '/permissions',
-    name: '权限管理',
-    icon: 'bookOutlined',
+    name: '权限基础数据',
+    icon: 'AuditOutlined',
     routes: [
       {
         path: '/permissions',
@@ -68,33 +73,42 @@ export default [
       },
       {
         path: '/permissions/menu',
-        name: 'Menu权限',
+        name: '菜单权限',
         component: './Permissions/Menu',
+      },
+      {
+        path: '/permissions/button',
+        name: '按钮权限',
+        component: './Permissions/Button',
+      },
+      {
+        path: '/permissions/api',
+        name: 'API权限',
+        component: './Permissions/API',
       },
     ]
   },
-  // {
-  //   path: '/workCard',
-  //   name: '数字化工卡',
-  //   icon: 'bookOutlined',
-  //   routes: [
-  //     {
-  //       path: '/workCard',
-  //       redirect: '/workCard/workCardMgr',
-  //     },
-  //     {
-  //       name: '工卡模块管理',
-  //       path: '/workCard/workCardMgr',
-  //       component: './JWorkCard/workCardMgr',
-  //     },
-  //     {
-  //       name: '工卡设计器',
-  //       path: '/workCard/workCardDesigner',
-  //       hideInMenu:true,
-  //       component: './JWorkCard/workCardMgr/workCardDesigner',
-  //     },
-  //   ]
-  // },
+  {
+    path: '/service_provider',
+    name: '服务提供商管理',
+    icon: 'PartitionOutlined',
+    component: './ServiceProvider/Applications',
+  },
+  {
+    path: '/account',
+    name: '个人中心',
+    icon: 'userOutlined',
+    hideInMenu: true,
+    layout: false,
+    routes: [
+      {
+        path: '/account/center',
+        name: '个人中心',
+        component: './account/center',
+        layout: false,
+      },
+    ],
+  },
   {
     path: '*',
     layout: false,

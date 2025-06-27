@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取部门列表 获取部门列表，支持分页和筛选 GET /api/v1/departments */
+/** 获取部门列表 获取部门列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/departments */
 export async function getDepartments(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentsParams,
@@ -13,17 +13,9 @@ export async function getDepartments(
     message?: string;
     data?: {
       total?: number;
-      current?: number;
+      page?: number;
       size?: number;
-      items?: {
-        department_id?: string;
-        name?: string;
-        description?: string;
-        parent_id?: string;
-        status?: string;
-        created_at?: string;
-        updated_at?: string;
-      }[];
+      items?: API.Department[];
     };
   }>('/api/v1/departments', {
     method: 'GET',
@@ -49,7 +41,7 @@ export async function postDepartments(
     /** 父部门ID */
     parent_id?: string;
     /** 部门状态 */
-    status?: 'ACTIVE' | 'INACTIVE';
+    status?: 'ACTIVE' | 'DISABLED';
   },
   options?: { [key: string]: any },
 ) {
@@ -113,7 +105,7 @@ export async function putDepartmentsDepartmentId(
     /** 父部门ID */
     parent_id?: string;
     /** 部门状态 */
-    status?: 'ACTIVE' | 'INACTIVE';
+    status?: 'ACTIVE' | 'DISABLED';
   },
   options?: { [key: string]: any },
 ) {

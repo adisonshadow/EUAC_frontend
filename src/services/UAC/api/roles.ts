@@ -2,15 +2,24 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取角色列表 获取所有角色列表，支持分页和状态筛选 GET /api/v1/roles */
+/** 获取角色列表 获取角色列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/roles */
 export async function getRoles(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getRolesParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.RoleListResponse>('/api/v1/roles', {
+  return request<{
+    code?: number;
+    message?: string;
+    data?: { total?: number; page?: number; size?: number; items?: API.Role[] };
+  }>('/api/v1/roles', {
     method: 'GET',
     params: {
+      // page has a default value: 1
+      page: '1',
+      // size has a default value: 10
+      size: '10',
+
       ...params,
     },
     ...(options || {}),

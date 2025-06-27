@@ -1,11 +1,14 @@
+import { ACTION_TYPES } from "@/enums";
+
+export type ActionType = typeof ACTION_TYPES[number]['key'];
+
 export interface MenuPermission {
   permission_id: string;
-  name: string;
   code: string;
   description?: string;
   resource_type: 'MENU';
-  actions: string[];
-  status?: 'ACTIVE' | 'INACTIVE';
+  actions: ActionType[];
+  status?: 'ACTIVE' | 'DISABLED';
   created_at: string;
   updated_at?: string;
   children?: MenuPermission[];
@@ -14,12 +17,11 @@ export interface MenuPermission {
 
 export interface PermissionResponse {
   permission_id?: string;
-  name?: string;
   code?: string;
   description?: string;
   resource_type?: string;
   actions?: string[];
-  status?: 'ACTIVE' | 'INACTIVE';
+  status?: 'ACTIVE' | 'DISABLED';
   created_at?: string;
   updated_at?: string;
   parent_id?: string;

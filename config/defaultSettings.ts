@@ -1,4 +1,4 @@
-import { ProLayoutProps } from '@ant-design/pro-components';
+import { ProLayoutProps } from '@oceanbase/ui';
 
 /**
  * @name 默认配置
@@ -15,7 +15,7 @@ const Settings: ProLayoutProps & {
   // 如无必要，尽量不要配置下面
   siderWidth: 208, // 侧边菜单宽度
   pure: false, // 是否删除掉所有的自带界面
-  layout: 'mix', // layout 的菜单模式，side：右侧导航，top：顶部导航， 可选：side | top | mix
+  layout: 'top', // layout 的菜单模式，side：右侧导航，top：顶部导航， 可选：side | top | mix
   contentWidth: 'Fluid', // layout 的内容模式，Fluid：自适应，Fixed：定宽 1200px
   fixedHeader: true,  // 是否固定 header 到顶部
   fixSiderbar: true, // 是否固定导航

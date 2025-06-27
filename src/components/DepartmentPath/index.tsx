@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useModel } from '@umijs/max';
-import { Tooltip, Cascader } from 'antd';
-import type { CascaderProps } from 'antd';
+import { Tooltip, Cascader } from '@oceanbase/design';
+import type { CascaderProps } from '@oceanbase/design';
 import { getDepartmentPath } from '@/utils/department';
 
 interface DepartmentPathProps {

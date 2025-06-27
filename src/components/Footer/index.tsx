@@ -1,5 +1,4 @@
-// import { GithubOutlined } from '@ant-design/icons';
-import { DefaultFooter } from '@ant-design/pro-components';
+import { DefaultFooter } from '@oceanbase/ui';
 import Settings from '@/../config/defaultSettings';
 import React from 'react';
 
