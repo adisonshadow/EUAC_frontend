@@ -7,7 +7,6 @@ import * as applicationsSso from './applicationsSso';
 import * as auth from './auth';
 import * as captcha from './captcha';
 import * as departments from './departments';
-import * as dev from './dev';
 import * as health from './health';
 import * as permissions from './permissions';
 import * as roles from './roles';
@@ -19,7 +18,6 @@ export default {
   auth,
   captcha,
   departments,
-  dev,
   health,
   permissions,
   roles,

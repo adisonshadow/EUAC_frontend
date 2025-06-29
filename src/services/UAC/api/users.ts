@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取用户列表 获取用户列表，支持分页和多种筛选条件 GET /api/v1/users */
+/** 获取用户列表 [需要认证] 获取用户列表，支持分页和多种筛选条件 GET /api/v1/users */
 export async function getUsers(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getUsersParams,
@@ -26,7 +26,7 @@ export async function getUsers(
   });
 }
 
-/** 创建用户 创建新用户 POST /api/v1/users */
+/** 创建用户 [需要认证] 创建新用户 POST /api/v1/users */
 export async function postUsers(
   body: {
     /** 用户名 */
@@ -63,7 +63,7 @@ export async function postUsers(
   );
 }
 
-/** 获取用户详情 获取指定用户的详细信息 GET /api/v1/users/${param0} */
+/** 获取用户详情 [需要认证] 获取指定用户的详细信息 GET /api/v1/users/${param0} */
 export async function getUsersUserId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getUsersUserIdParams,
@@ -80,7 +80,7 @@ export async function getUsersUserId(
   );
 }
 
-/** 更新用户信息 更新指定用户的信息 PUT /api/v1/users/${param0} */
+/** 更新用户信息 [需要认证] 更新指定用户的信息 PUT /api/v1/users/${param0} */
 export async function putUsersUserId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putUsersUserIdParams,
@@ -117,7 +117,7 @@ export async function putUsersUserId(
   );
 }
 
-/** 删除用户 删除指定用户 DELETE /api/v1/users/${param0} */
+/** 删除用户 [需要认证] 删除指定用户 DELETE /api/v1/users/${param0} */
 export async function deleteUsersUserId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteUsersUserIdParams,
@@ -134,7 +134,7 @@ export async function deleteUsersUserId(
   );
 }
 
-/** 上传用户头像 上传并更新用户头像 POST /api/v1/users/${param0}/avatar */
+/** 上传用户头像 [需要认证] 上传并更新用户头像 POST /api/v1/users/${param0}/avatar */
 export async function postUsersUserIdAvatar(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.postUsersUserIdAvatarParams,
@@ -174,7 +174,7 @@ export async function postUsersUserIdAvatar(
   });
 }
 
-/** 修改密码 用户通过旧密码修改为新密码 POST /api/v1/users/${param0}/change-password */
+/** 修改密码 [需要认证] 用户通过旧密码修改为新密码 POST /api/v1/users/${param0}/change-password */
 export async function postUsersUserIdChangePassword(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.postUsersUserIdChangePasswordParams,
@@ -201,7 +201,7 @@ export async function postUsersUserIdChangePassword(
   );
 }
 
-/** 恢复已删除用户 恢复被软删除的用户 POST /api/v1/users/${param0}/restore */
+/** 恢复已删除用户 [需要认证] 恢复被软删除的用户 POST /api/v1/users/${param0}/restore */
 export async function postUsersUserIdRestore(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.postUsersUserIdRestoreParams,
@@ -215,7 +215,7 @@ export async function postUsersUserIdRestore(
   });
 }
 
-/** 更新用户角色 更新指定用户的角色 PUT /api/v1/users/${param0}/roles */
+/** 更新用户角色 [需要认证] 更新指定用户的角色 PUT /api/v1/users/${param0}/roles */
 export async function putUsersUserIdRoles(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putUsersUserIdRolesParams,
@@ -241,7 +241,7 @@ export async function putUsersUserIdRoles(
   });
 }
 
-/** 更新用户状态 更新指定用户的状态 PUT /api/v1/users/${param0}/status */
+/** 更新用户状态 [需要认证] 更新指定用户的状态 PUT /api/v1/users/${param0}/status */
 export async function putUsersUserIdStatus(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putUsersUserIdStatusParams,
@@ -286,7 +286,7 @@ export async function postUsersRequestPasswordReset(
   );
 }
 
-/** 重置密码 重置用户密码 POST /api/v1/users/reset-password */
+/** 重置密码 [需要认证] 重置用户密码 POST /api/v1/users/reset-password */
 export async function postUsersResetPassword(
   body: {
     /** 用户名 */

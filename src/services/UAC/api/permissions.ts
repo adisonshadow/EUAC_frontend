@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取权限列表 获取权限列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/permissions */
+/** 获取权限列表 [需要认证] 获取权限列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/permissions */
 export async function getPermissions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getPermissionsParams,
@@ -31,7 +31,7 @@ export async function getPermissions(
   });
 }
 
-/** 创建权限 创建新的权限 POST /api/v1/permissions */
+/** 创建权限 [需要认证] 创建新的权限 POST /api/v1/permissions */
 export async function postPermissions(
   body: {
     /** 权限编码 */
@@ -66,7 +66,7 @@ export async function postPermissions(
   });
 }
 
-/** 获取权限详情 获取指定权限的详细信息 GET /api/v1/permissions/${param0} */
+/** 获取权限详情 [需要认证] 获取指定权限的详细信息 GET /api/v1/permissions/${param0} */
 export async function getPermissionsPermissionId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getPermissionsPermissionIdParams,
@@ -92,7 +92,7 @@ export async function getPermissionsPermissionId(
   });
 }
 
-/** 更新权限 更新指定权限的信息 PUT /api/v1/permissions/${param0} */
+/** 更新权限 [需要认证] 更新指定权限的信息 PUT /api/v1/permissions/${param0} */
 export async function putPermissionsPermissionId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putPermissionsPermissionIdParams,
@@ -129,7 +129,7 @@ export async function putPermissionsPermissionId(
   });
 }
 
-/** 删除权限 删除指定权限 DELETE /api/v1/permissions/${param0} */
+/** 删除权限 [需要认证] 删除指定权限 DELETE /api/v1/permissions/${param0} */
 export async function deletePermissionsPermissionId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deletePermissionsPermissionIdParams,
@@ -146,7 +146,7 @@ export async function deletePermissionsPermissionId(
   );
 }
 
-/** 分配角色权限 为指定角色分配权限 POST /api/v1/permissions/${param0}/roles */
+/** 分配角色权限 [需要认证] 为指定角色分配权限 POST /api/v1/permissions/${param0}/roles */
 export async function postPermissionsPermissionIdRoles(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.postPermissionsPermissionIdRolesParams,
@@ -171,7 +171,7 @@ export async function postPermissionsPermissionIdRoles(
   );
 }
 
-/** 检查权限 检查用户是否拥有指定资源类型的多个操作权限 GET /api/v1/permissions/check */
+/** 检查权限 [需要认证] 检查用户是否拥有指定资源类型的多个操作权限 GET /api/v1/permissions/check */
 export async function getPermissionsCheck(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getPermissionsCheckParams,
@@ -198,7 +198,7 @@ export async function getPermissionsCheck(
   });
 }
 
-/** 获取数据权限规则列表 获取所有数据权限规则 GET /api/v1/permissions/rules */
+/** 获取数据权限规则列表 [需要认证] 获取所有数据权限规则 GET /api/v1/permissions/rules */
 export async function getPermissionsRules(options?: { [key: string]: any }) {
   return request<{
     code?: number;
@@ -216,7 +216,7 @@ export async function getPermissionsRules(options?: { [key: string]: any }) {
   });
 }
 
-/** 创建数据权限规则 创建新的数据权限规则 POST /api/v1/permissions/rules */
+/** 创建数据权限规则 [需要认证] 创建新的数据权限规则 POST /api/v1/permissions/rules */
 export async function postPermissionsRules(
   body: {
     /** 角色ID */
@@ -248,7 +248,7 @@ export async function postPermissionsRules(
   });
 }
 
-/** 获取用户权限 获取指定用户的所有权限 GET /api/v1/permissions/users/${param0} */
+/** 获取用户权限 [需要认证] 获取指定用户的所有权限 GET /api/v1/permissions/users/${param0} */
 export async function getPermissionsUsersUserId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getPermissionsUsersUserIdParams,

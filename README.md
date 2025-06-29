@@ -43,7 +43,7 @@ yarn install --production --offline
 2. git
 ```bash
  # 按需：跳过校验提交到github
- git commit --no-verify -m "initial commit"
+ git commit --no-verify -m "routine update"
 
  # 提交到github
  git push -u origin main

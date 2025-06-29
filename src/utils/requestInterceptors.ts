@@ -1,7 +1,7 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { message } from '@oceanbase/design';
 import { handleUnauthorized } from './auth';
-import { NO_TOKEN_APIS, AUTH_HEADER, AUTH_PREFIX } from '@/constants/auth';
+import { NO_TOKEN_APIS, AUTH_HEADER, AUTH_PREFIX, AUTH_PAGES } from '@/constants/auth';
 
 // 错误类型枚举
 export enum ErrorShowType {
@@ -144,7 +144,17 @@ export const errorConfig = {
       }
     } else if (error.response) {
       // Axios 的错误
-      message.error(`请求错误 ${error.response.status}: ${error.response.statusText}`);
+      const { status } = error.response;
+      const currentPath = window.location.pathname;
+      const isAuthPage = AUTH_PAGES.includes(currentPath as any);
+      
+      // 如果是认证页面且状态码是401，则忽略错误提示
+      if (isAuthPage && status === 401) {
+        // 静默处理，不显示错误消息
+        return;
+      }
+      
+      message.error(`请求错误 ${status}: ${error.response.statusText}`);
     } else if (error.request) {
       // 请求已发出但没有收到响应
       message.error('服务器无响应，请稍后重试');
@@ -153,4 +163,4 @@ export const errorConfig = {
       message.error('请求配置错误，请检查');
     }
   },
-}; 
+};

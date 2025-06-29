@@ -19,7 +19,7 @@ export async function getApplicationsSsoId(
       status?: 'ACTIVE' | 'DISABLED';
       sso_enabled?: boolean;
       sso_config?: {
-        currentTimestample?: string;
+        currentTimestamp?: string;
         secret?: string;
         protocol?: 'SAML' | 'CAS' | 'OIDC' | 'OAuth';
         redirect_uri?: string;

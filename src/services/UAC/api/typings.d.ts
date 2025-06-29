@@ -457,7 +457,7 @@ declare namespace API {
     /** 基于currenttime、salt，使用 bcrypt 生成的Hash值 */
     secret?: string;
     /** 当前时间戳， 用于生成secret */
-    currentTimestample?: number;
+    currentTimestamp?: number;
     /** 其他SSO协议特定的参数 */
     additional_params?: Record<string, any>;
   };

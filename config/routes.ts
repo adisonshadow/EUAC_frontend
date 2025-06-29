@@ -35,23 +35,24 @@ export default [
     path: '/member_org',
     name: '成员与组织管理',
     icon: 'TeamOutlined',
+    wrappers: ['@/layouts/SecurityLayout'],
     routes: [
       {
-        path: '/member_org',
-        redirect: '/member_org/member',
+        path: '',
+        redirect: 'member',
       },
       {
-        path: '/member_org/member',
+        path: 'member',
         name: '成员管理',
         component: './MemberOrg/Member',
       },
       {
-        path: '/member_org/organization',
+        path: 'organization',
         name: '组织架构管理',
         component: './MemberOrg/Organization',
       },
       {
-        path: '/member_org/role',
+        path: 'role',
         name: '角色管理',
         component: './MemberOrg/Role',
       },
@@ -66,23 +67,24 @@ export default [
     path: '/permissions',
     name: '权限基础数据',
     icon: 'AuditOutlined',
+    wrappers: ['@/layouts/SecurityLayout'],
     routes: [
       {
-        path: '/permissions',
-        redirect: '/permissions/menu',
+        path: '',
+        redirect: 'menu',
       },
       {
-        path: '/permissions/menu',
+        path: 'menu',
         name: '菜单权限',
         component: './Permissions/Menu',
       },
       {
-        path: '/permissions/button',
+        path: 'button',
         name: '按钮权限',
         component: './Permissions/Button',
       },
       {
-        path: '/permissions/api',
+        path: 'api',
         name: 'API权限',
         component: './Permissions/API',
       },
@@ -92,17 +94,19 @@ export default [
     path: '/service_provider',
     name: '服务提供商管理',
     icon: 'PartitionOutlined',
+    wrappers: ['@/layouts/SecurityLayout'],
     component: './ServiceProvider/Applications',
   },
   {
     path: '/account',
     name: '个人中心',
     icon: 'userOutlined',
+    wrappers: ['@/layouts/SecurityLayout'],
     hideInMenu: true,
     layout: false,
     routes: [
       {
-        path: '/account/center',
+        path: 'center',
         name: '个人中心',
         component: './account/center',
         layout: false,

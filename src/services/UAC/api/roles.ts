@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取角色列表 获取角色列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/roles */
+/** 获取角色列表 [需要认证] 获取角色列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/roles */
 export async function getRoles(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getRolesParams,
@@ -26,7 +26,7 @@ export async function getRoles(
   });
 }
 
-/** 创建角色 创建新角色 POST /api/v1/roles */
+/** 创建角色 [需要认证] 创建新角色 POST /api/v1/roles */
 export async function postRoles(
   body: {
     /** 角色名称 */
@@ -50,7 +50,7 @@ export async function postRoles(
   });
 }
 
-/** 获取角色详情 获取指定角色的详细信息 GET /api/v1/roles/${param0} */
+/** 获取角色详情 [需要认证] 获取指定角色的详细信息 GET /api/v1/roles/${param0} */
 export async function getRolesRoleId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getRolesRoleIdParams,
@@ -64,7 +64,7 @@ export async function getRolesRoleId(
   });
 }
 
-/** 更新角色信息 更新指定角色的信息 PUT /api/v1/roles/${param0} */
+/** 更新角色信息 [需要认证] 更新指定角色的信息 PUT /api/v1/roles/${param0} */
 export async function putRolesRoleId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putRolesRoleIdParams,
@@ -88,7 +88,7 @@ export async function putRolesRoleId(
   });
 }
 
-/** 删除角色 软删除指定角色 DELETE /api/v1/roles/${param0} */
+/** 删除角色 [需要认证] 软删除指定角色 DELETE /api/v1/roles/${param0} */
 export async function deleteRolesRoleId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteRolesRoleIdParams,
@@ -105,7 +105,7 @@ export async function deleteRolesRoleId(
   );
 }
 
-/** 更新角色权限 更新角色的权限列表，可以添加或删除权限 PUT /api/v1/roles/${param0}/permissions */
+/** 更新角色权限 [需要认证] 更新角色的权限列表，可以添加或删除权限 PUT /api/v1/roles/${param0}/permissions */
 export async function putRolesRoleIdPermissions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putRolesRoleIdPermissionsParams,
@@ -132,7 +132,7 @@ export async function putRolesRoleIdPermissions(
   );
 }
 
-/** 给角色分配权限 完全替换角色的现有权限，设置新的权限列表 POST /api/v1/roles/${param0}/permissions */
+/** 给角色分配权限 [需要认证] 完全替换角色的现有权限，设置新的权限列表 POST /api/v1/roles/${param0}/permissions */
 export async function postRolesRoleIdPermissions(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.postRolesRoleIdPermissionsParams,
@@ -157,7 +157,7 @@ export async function postRolesRoleIdPermissions(
   );
 }
 
-/** 检查用户权限 检查当前用户是否拥有指定权限 GET /api/v1/roles/check-permission */
+/** 检查用户权限 [需要认证] 检查当前用户是否拥有指定权限 GET /api/v1/roles/check-permission */
 export async function getRolesCheckPermission(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getRolesCheckPermissionParams,

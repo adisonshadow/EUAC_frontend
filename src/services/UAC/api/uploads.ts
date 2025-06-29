@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 上传文件 上传单个文件，支持图片自动转换为webp格式 POST /api/v1/uploads */
+/** 上传文件 [需要认证] 上传单个文件，支持图片自动转换为webp格式 POST /api/v1/uploads */
 export async function postUploads(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.postUploadsParams,
@@ -55,7 +55,7 @@ export async function postUploads(
   });
 }
 
-/** 获取文件信息 获取指定文件的详细信息 GET /api/v1/uploads/${param0} */
+/** 获取文件信息 [需要认证] 获取指定文件的详细信息 GET /api/v1/uploads/${param0} */
 export async function getUploadsFileId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getUploadsFileIdParams,
@@ -81,7 +81,7 @@ export async function getUploadsFileId(
   });
 }
 
-/** 删除文件 删除指定文件 DELETE /api/v1/uploads/${param0} */
+/** 删除文件 [需要认证] 删除指定文件 DELETE /api/v1/uploads/${param0} */
 export async function deleteUploadsFileId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteUploadsFileIdParams,
@@ -98,7 +98,7 @@ export async function deleteUploadsFileId(
   );
 }
 
-/** 上传图片 上传单个图片，支持压缩和格式转换 POST /api/v1/uploads/image */
+/** 上传图片 [需要认证] 上传单个图片，支持压缩和格式转换 POST /api/v1/uploads/image */
 export async function postUploadsImage(
   body: {
     /** 是否压缩图片 */
@@ -171,7 +171,7 @@ export async function getUploadsImagesFileId(
   });
 }
 
-/** 上传多个文件 同时上传多个文件 POST /api/v1/uploads/multiple */
+/** 上传多个文件 [需要认证] 同时上传多个文件 POST /api/v1/uploads/multiple */
 export async function postUploadsMultiple(
   body: {},
   files?: File[],

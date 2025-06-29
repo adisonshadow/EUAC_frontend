@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取部门列表 获取部门列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/departments */
+/** 获取部门列表 [需要认证] 获取部门列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/departments */
 export async function getDepartments(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentsParams,
@@ -31,7 +31,7 @@ export async function getDepartments(
   });
 }
 
-/** 创建部门 创建新的部门 POST /api/v1/departments */
+/** 创建部门 [需要认证] 创建新的部门 POST /api/v1/departments */
 export async function postDepartments(
   body: {
     /** 部门名称 */
@@ -66,7 +66,7 @@ export async function postDepartments(
   });
 }
 
-/** 获取部门详情 获取指定部门的详细信息 GET /api/v1/departments/${param0} */
+/** 获取部门详情 [需要认证] 获取指定部门的详细信息 GET /api/v1/departments/${param0} */
 export async function getDepartmentsDepartmentId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentsDepartmentIdParams,
@@ -93,7 +93,7 @@ export async function getDepartmentsDepartmentId(
   });
 }
 
-/** 更新部门 更新指定部门的信息 PUT /api/v1/departments/${param0} */
+/** 更新部门 [需要认证] 更新指定部门的信息 PUT /api/v1/departments/${param0} */
 export async function putDepartmentsDepartmentId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putDepartmentsDepartmentIdParams,
@@ -132,7 +132,7 @@ export async function putDepartmentsDepartmentId(
   });
 }
 
-/** 删除部门 删除指定部门 DELETE /api/v1/departments/${param0} */
+/** 删除部门 [需要认证] 删除指定部门 DELETE /api/v1/departments/${param0} */
 export async function deleteDepartmentsDepartmentId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteDepartmentsDepartmentIdParams,
@@ -149,7 +149,7 @@ export async function deleteDepartmentsDepartmentId(
   );
 }
 
-/** 获取部门用户 获取指定部门的所有用户 GET /api/v1/departments/${param0}/users */
+/** 获取部门用户 [需要认证] 获取指定部门的所有用户 GET /api/v1/departments/${param0}/users */
 export async function getDepartmentsDepartmentIdUsers(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentsDepartmentIdUsersParams,

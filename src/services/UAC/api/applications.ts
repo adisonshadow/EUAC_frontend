@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from '@umijs/max';
 
-/** 获取应用列表 获取应用列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/applications */
+/** 获取应用列表 [需要认证] 获取应用列表，支持分页和筛选。当 size 参数为 -1 时，返回所有记录不分页。 GET /api/v1/applications */
 export async function getApplications(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getApplicationsParams,
@@ -31,7 +31,7 @@ export async function getApplications(
   });
 }
 
-/** 创建应用 创建一个新的应用 POST /api/v1/applications */
+/** 创建应用 [需要认证] 创建一个新的应用 POST /api/v1/applications */
 export async function postApplications(
   body: {
     /** 应用名称 */
@@ -65,7 +65,7 @@ export async function postApplications(
   );
 }
 
-/** 获取应用详情 根据ID获取应用详情 GET /api/v1/applications/${param0} */
+/** 获取应用详情 [需要认证] 根据ID获取应用详情 GET /api/v1/applications/${param0} */
 export async function getApplicationsId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getApplicationsIdParams,
@@ -82,7 +82,7 @@ export async function getApplicationsId(
   );
 }
 
-/** 更新应用 更新应用信息 PUT /api/v1/applications/${param0} */
+/** 更新应用 [需要认证] 更新应用信息 PUT /api/v1/applications/${param0} */
 export async function putApplicationsId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.putApplicationsIdParams,
@@ -120,7 +120,7 @@ export async function putApplicationsId(
   );
 }
 
-/** 删除应用 删除指定应用 DELETE /api/v1/applications/${param0} */
+/** 删除应用 [需要认证] 删除指定应用 DELETE /api/v1/applications/${param0} */
 export async function deleteApplicationsId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteApplicationsIdParams,
@@ -137,7 +137,7 @@ export async function deleteApplicationsId(
   );
 }
 
-/** 生成应用密钥 根据应用ID和salt生成app_secret，并保存到应用的api_connect_config中 POST /api/v1/applications/${param0}/generate-secret */
+/** 生成应用密钥 [需要认证] 根据应用ID和salt生成app_secret，并保存到应用的api_connect_config中 POST /api/v1/applications/${param0}/generate-secret */
 export async function postApplicationsIdGenerateSecret(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.postApplicationsIdGenerateSecretParams,
@@ -163,7 +163,7 @@ export async function postApplicationsIdGenerateSecret(
   });
 }
 
-/** 获取应用Token 根据应用ID和app_secret获取JWT Token，用于应用API认证 POST /api/v1/applications/token */
+/** 获取应用Token [需要认证] 根据应用ID和app_secret获取JWT Token，用于应用API认证 POST /api/v1/applications/token */
 export async function postApplicationsToken(
   body: {
     /** 应用ID */
