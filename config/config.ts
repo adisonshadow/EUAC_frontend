@@ -176,7 +176,7 @@ export default defineConfig({
   metas: [ 
     {
       'http-equiv': 'Content-Security-Policy',
-      'content': 'script-src \'self\' \'unsafe-eval\';',
+      'content': 'script-src \'self\' \'unsafe-eval\' \'unsafe-inline\' \'sha256-YuUrc/n9jKJwiFhr45L/ozn/PEUJlBjfgOJghn7bKzw=\';',
     },
   ],
 });
