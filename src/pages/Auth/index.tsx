@@ -72,11 +72,13 @@ const LoginPage: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [redirectMessage, setRedirectMessage] = useState('');
+  const [isApplicationInfoLoaded, setIsApplicationInfoLoaded] = useState(false);
   const captchaRef = useRef<SliderCaptchaRef>(null);
   const { setInitialState } = useModel('@@initialState');
 
   // 独立的SSO回调方法
   const submitSsoCallback = (userInfo: UserInfo, token: string, refreshToken?: string) => {
+    console.log('submitSsoCallback', userInfo, token, refreshToken);
     if (!applicationInfo?.sso_enabled || !applicationInfo?.sso_config?.redirect_uri) {
       return;
     }
@@ -138,7 +140,7 @@ const LoginPage: React.FC = () => {
       verifyInput.type = 'hidden';
       verifyInput.name = 'verify';
       verifyInput.value = JSON.stringify({
-        timestamp: currentTimestamp,
+        timestamp: currentTimestamp || "null",
         public_secret: secret,
         expires_in: 600,
       });
@@ -156,6 +158,7 @@ const LoginPage: React.FC = () => {
         phone: userInfo.phone,
         gender: userInfo.gender,
         status: userInfo.status,
+        avatar: userInfo.avatar,
         department_id: userInfo.department_id
       });
       form.appendChild(userInfoInput);
@@ -168,7 +171,7 @@ const LoginPage: React.FC = () => {
       for (const [key, value] of formData.entries()) {
         console.log(`${key}: ${value}`);
       }
-    //   form.submit();
+      form.submit();
     }
   };
 
@@ -207,14 +210,16 @@ const LoginPage: React.FC = () => {
     const fetchApplicationInfo = async () => {
       const urlParams = new URL(window.location.href).searchParams;
       const appId = urlParams.get('app');
-      if (appId) {
+      if (appId && !isApplicationInfoLoaded) {
         try {
           const response = await getApplicationsSsoId({ id: appId });
           if (response.code === 200 && response.data) {
             setApplicationInfo(response.data);
+            setIsApplicationInfoLoaded(true);
           }
         } catch (error) {
           message.error('获取应用信息失败');
+          setIsApplicationInfoLoaded(true); // 即使失败也标记为已加载，避免重复调用
         }
       }
     };
@@ -255,33 +260,30 @@ const LoginPage: React.FC = () => {
               });
             }, 3000);
           } else if (appId) {
-            // 如果有app参数但没有应用信息，等待应用信息加载完成
-            await fetchApplicationInfo();
-            if (applicationInfo?.name) {
-              setRedirectMessage(`您已登录，正在打开 ${applicationInfo.name} 应用……`);
-              setTimeout(() => {
-                // 获取当前用户信息用于SSO回调
-                getAuthCheck({}).then(userResponse => {
-                  if (userResponse.code === 200 && userResponse.data) {
-                    const userData = userResponse.data;
-                    const userInfo: UserInfo = {
-                      user_id: userData.user_id || '',
-                      username: userData.username || '',
-                      name: userData.name || '',
-                      avatar: userData.avatar || null,
-                      gender: userData.gender as any || null,
-                      email: userData.email || '',
-                      phone: userData.phone || null,
-                      status: userData.status as any || 'DISABLED',
-                      department_id: userData.department_id || null,
-                    };
-                    const token = localStorage.getItem('token') || '';
-                    const refreshToken = localStorage.getItem('refresh_token') || '';
-                    submitSsoCallback(userInfo, token, refreshToken);
-                  }
-                });
-              }, 3000);
-            }
+            // 如果有app参数但没有应用信息，直接处理SSO回调
+            setRedirectMessage('您已登录，正在打开应用……');
+            setTimeout(() => {
+              // 获取当前用户信息用于SSO回调
+              getAuthCheck({}).then(userResponse => {
+                if (userResponse.code === 200 && userResponse.data) {
+                  const userData = userResponse.data;
+                  const userInfo: UserInfo = {
+                    user_id: userData.user_id || '',
+                    username: userData.username || '',
+                    name: userData.name || '',
+                    avatar: userData.avatar || null,
+                    gender: userData.gender as any || null,
+                    email: userData.email || '',
+                    phone: userData.phone || null,
+                    status: userData.status as any || 'DISABLED',
+                    department_id: userData.department_id || null,
+                  };
+                  const token = localStorage.getItem('token') || '';
+                  const refreshToken = localStorage.getItem('refresh_token') || '';
+                  submitSsoCallback(userInfo, token, refreshToken);
+                }
+              });
+            }, 3000);
           } else {
             setRedirectMessage('您已登录，正在打开管理界面……');
             // 3秒后跳转到首页
@@ -300,7 +302,7 @@ const LoginPage: React.FC = () => {
     checkHealth();
     fetchApplicationInfo();
     checkUserLoginStatus();
-  }, [applicationInfo?.name]);
+  }, []); // 移除依赖项，避免循环调用
 
   const handleLoginSuccess = async (userInfo: UserInfo, token: string, refreshToken?: string) => {
     try {
